@@ -1,5 +1,8 @@
 import type { Booking } from '@/entities/booking/types'
 import type { City } from '@/entities/location/types'
+import type { Route } from '@/entities/route/types'
+import type { Payment } from '@/entities/payment/types'
+import type { SeatStatus } from '@/entities/seat/types'
 import type { Trip } from '@/entities/trip/types'
 import type { ApiResult } from '@/shared/api/types'
 import { mockApi } from '@/shared/api/mock/mockApi'
@@ -23,17 +26,54 @@ export type CreateBookingInput = {
   paymentMethod: 'CARD' | 'CASH_ON_BOARD'
 }
 
+export type SeatAvailability = {
+  tripId: string
+  updatedAt: string
+  seats: Array<{
+    id: string
+    label: string
+    row: number
+    column: number
+    status: SeatStatus
+  }>
+}
+
+export type BookSeatsInput = {
+  tripId: string
+  seatIds: string[]
+}
+
+export type BookSeatsResult = {
+  tripId: string
+  bookedSeatIds: string[]
+}
+
+export type PayInput = {
+  bookingId: string
+  method: 'CARD' | 'CASH_ON_BOARD'
+}
+
 export type ApiClient = {
   cities: {
     list(): Promise<ApiResult<City[]>>
+  }
+  routes: {
+    list(): Promise<ApiResult<Route[]>>
   }
   trips: {
     search(params: SearchTripsParams): Promise<ApiResult<Trip[]>>
     byId(tripId: string): Promise<ApiResult<Trip>>
   }
+  seats: {
+    availabilityByTrip(tripId: string): Promise<ApiResult<SeatAvailability>>
+    book(input: BookSeatsInput): Promise<ApiResult<BookSeatsResult>>
+  }
   bookings: {
     create(input: CreateBookingInput): Promise<ApiResult<Booking>>
     byId(bookingId: string): Promise<ApiResult<Booking>>
+  }
+  payments: {
+    pay(input: PayInput): Promise<ApiResult<Payment>>
   }
 }
 

@@ -5,11 +5,11 @@ import { routes } from '@/app/router/routes'
 import { useSearchTripsQuery } from '@/features/search-trips/api/queries'
 import { parsePassengers } from '@/features/search-trips/model/searchParams'
 import { SearchForm } from '@/features/search-trips/ui/SearchForm'
-import { TripsList } from '@/features/search-trips/ui/TripsList'
 import { useBookingStore } from '@/features/booking/model/useBookingStore'
+import { Button } from '@/shared/components/ui/Button'
 import { Card } from '@/shared/components/ui/Card'
 import { Spinner } from '@/shared/components/ui/Spinner'
-import { todayYmd } from '@/shared/lib/format'
+import { formatMoney, formatTime, todayYmd } from '@/shared/lib/format'
 
 export function SearchResultsPage() {
   const navigate = useNavigate()
@@ -48,13 +48,63 @@ export function SearchResultsPage() {
           <div className="text-sm text-rose-300">Failed to load trips.</div>
         </Card>
       ) : (
-        <TripsList
-          trips={query.data ?? []}
-          onSelect={(tripId) => {
-            actions.setTripId(tripId)
-            navigate(routes.seatSelection(tripId))
-          }}
-        />
+        <div className="grid gap-3">
+          {(query.data ?? []).length === 0 ? (
+            <Card className="p-6">
+              <div className="text-sm font-medium text-slate-100">No routes found</div>
+              <div className="mt-2 text-sm text-slate-400">
+                Try a different date or change the cities.
+              </div>
+            </Card>
+          ) : (
+            (query.data ?? []).map((trip) => (
+              <Card key={trip.id} className="p-5">
+                <div className="grid gap-4 md:grid-cols-12 md:items-center">
+                  <div className="md:col-span-6">
+                    <div className="text-sm text-slate-400">Time</div>
+                    <div className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                      <div className="text-lg font-semibold text-slate-100">
+                        {formatTime(trip.departureTime)}
+                      </div>
+                      <div className="text-sm text-slate-400">→</div>
+                      <div className="text-lg font-semibold text-slate-100">
+                        {formatTime(trip.arrivalTime)}
+                      </div>
+                      <div className="text-sm text-slate-400">
+                        • {trip.from.name} → {trip.to.name}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="md:col-span-3">
+                    <div className="text-sm text-slate-400">Price</div>
+                    <div className="mt-1 text-lg font-semibold text-slate-100">
+                      {formatMoney(trip.price)}
+                    </div>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <div className="text-sm text-slate-400">Available seats</div>
+                    <div className="mt-1 text-sm font-medium text-slate-100">{trip.seatsLeft}</div>
+                  </div>
+
+                  <div className="md:col-span-1 md:flex md:justify-end">
+                    <Button
+                      size="sm"
+                      className="w-full md:w-auto"
+                      onClick={() => {
+                        actions.setTripId(trip.id)
+                        navigate(routes.seatSelection(trip.id))
+                      }}
+                    >
+                      Select seats
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            ))
+          )}
+        </div>
       )}
     </div>
   )

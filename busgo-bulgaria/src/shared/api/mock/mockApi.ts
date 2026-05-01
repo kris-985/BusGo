@@ -1,8 +1,18 @@
 import type { Booking } from '@/entities/booking/types'
 import type { PassengerType } from '@/entities/passenger/types'
-import type { ApiClient, CreateBookingInput, SearchTripsParams } from '@/shared/api/apiClient'
+import type { Payment } from '@/entities/payment/types'
+import { PaymentStatus } from '@/entities/payment/types'
+import { SeatStatus } from '@/entities/seat/types'
+import type {
+  ApiClient,
+  BookSeatsInput,
+  CreateBookingInput,
+  PayInput,
+  SearchTripsParams,
+  SeatAvailability,
+} from '@/shared/api/apiClient'
 import type { ApiResult } from '@/shared/api/types'
-import { bookings, cities, trips } from '@/shared/api/mock/db'
+import { bookings, cities, routes, seatMapsByTripId, trips } from '@/shared/api/mock/db'
 
 function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms))
@@ -26,11 +36,21 @@ function passengerMultiplier(type: PassengerType) {
   return 1
 }
 
+function clone<T>(value: T): T {
+  return structuredClone(value)
+}
+
 export const mockApi: ApiClient = {
   cities: {
     async list() {
       await sleep(150)
       return ok(cities)
+    },
+  },
+  routes: {
+    async list() {
+      await sleep(220)
+      return ok(routes)
     },
   },
   trips: {
@@ -48,6 +68,50 @@ export const mockApi: ApiClient = {
       const trip = trips.find((t) => t.id === tripId)
       if (!trip) return fail('Trip not found', 404)
       return ok(trip)
+    },
+  },
+  seats: {
+    async availabilityByTrip(tripId: string) {
+      await sleep(260)
+      const trip = trips.find((t) => t.id === tripId)
+      if (!trip) return fail('Trip not found', 404)
+
+      const map = seatMapsByTripId[tripId]
+      if (!map) return fail('Seat map not found', 404)
+
+      const res: SeatAvailability = {
+        tripId,
+        updatedAt: new Date().toISOString(),
+        seats: clone(map),
+      }
+      return ok(res)
+    },
+    async book(input: BookSeatsInput) {
+      await sleep(420)
+      const trip = trips.find((t) => t.id === input.tripId)
+      if (!trip) return fail('Trip not found', 404)
+
+      const map = seatMapsByTripId[input.tripId]
+      if (!map) return fail('Seat map not found', 404)
+
+      const uniqueSeatIds = Array.from(new Set(input.seatIds)).filter(Boolean)
+      if (uniqueSeatIds.length === 0) return fail('No seats selected', 422)
+      if (uniqueSeatIds.length > 6) return fail('Too many seats requested', 422)
+
+      const byId = new Map(map.map((s) => [s.id, s]))
+      for (const seatId of uniqueSeatIds) {
+        const seat = byId.get(seatId)
+        if (!seat) return fail(`Seat not found: ${seatId}`, 404)
+        if (seat.status === SeatStatus.Occupied) return fail(`Seat already occupied: ${seat.label}`, 409)
+      }
+
+      // Mark as occupied (server-side truth). "Selected" is UI-only state in this demo.
+      for (const seatId of uniqueSeatIds) {
+        const seat = byId.get(seatId)!
+        seat.status = SeatStatus.Occupied
+      }
+
+      return ok({ tripId: input.tripId, bookedSeatIds: uniqueSeatIds })
     },
   },
   bookings: {
@@ -85,6 +149,27 @@ export const mockApi: ApiClient = {
       const booking = bookings.find((b) => b.id === bookingId)
       if (!booking) return fail('Booking not found', 404)
       return ok(booking)
+    },
+  },
+  payments: {
+    async pay(input: PayInput) {
+      // Simulate "processing" + always-success (for now).
+      await sleep(650)
+      const booking = bookings.find((b) => b.id === input.bookingId)
+      if (!booking) return fail('Booking not found', 404)
+
+      const payment: Payment = {
+        id: `pay-${Date.now()}`,
+        bookingId: booking.id,
+        createdAt: new Date().toISOString(),
+        status: PaymentStatus.Succeeded,
+        method: input.method,
+        amount: booking.total,
+        provider: input.method === 'CARD' ? 'MockPay' : 'Cash',
+        providerPaymentId: input.method === 'CARD' ? `mp_${Math.random().toString(16).slice(2)}` : undefined,
+      }
+
+      return ok(payment)
     },
   },
 }

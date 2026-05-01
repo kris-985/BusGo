@@ -1,5 +1,7 @@
 import type { Booking } from '@/entities/booking/types'
 import type { City } from '@/entities/location/types'
+import type { Route } from '@/entities/route/types'
+import { SeatStatus, type Seat } from '@/entities/seat/types'
 import type { Trip } from '@/entities/trip/types'
 
 export const cities: City[] = [
@@ -51,6 +53,64 @@ export const trips: Trip[] = [
     seatsLeft: 22,
   },
 ]
+
+export const routes: Route[] = [
+  {
+    id: 'r-sof-pld',
+    from: cities[0],
+    to: cities[1],
+    distanceKm: 146,
+    estimatedDurationMinutes: 150,
+  },
+  {
+    id: 'r-sof-var',
+    from: cities[0],
+    to: cities[2],
+    distanceKm: 470,
+    estimatedDurationMinutes: 390,
+  },
+  {
+    id: 'r-pld-bgs',
+    from: cities[1],
+    to: cities[3],
+    distanceKm: 253,
+    estimatedDurationMinutes: 240,
+  },
+]
+
+function buildStandardSeatMap(prefix: string): Seat[] {
+  // 10 rows, 4 columns (2+2) => 40 seats
+  const cols = ['A', 'B', 'C', 'D'] as const
+  const seats: Seat[] = []
+  for (let row = 1; row <= 10; row++) {
+    for (let colIdx = 0; colIdx < cols.length; colIdx++) {
+      const label = `${row}${cols[colIdx]}`
+      seats.push({
+        id: `${prefix}-${label}`,
+        label,
+        row,
+        column: colIdx + 1,
+        status: SeatStatus.Free,
+      })
+    }
+  }
+  return seats
+}
+
+// Stateful availability per trip (in-memory).
+export const seatMapsByTripId: Record<string, Seat[]> = {
+  't-1001': buildStandardSeatMap('s-t-1001'),
+  't-1002': buildStandardSeatMap('s-t-1002'),
+  't-1003': buildStandardSeatMap('s-t-1003'),
+}
+
+// Seed a few occupied seats for realism
+seatMapsByTripId['t-1001']?.forEach((s) => {
+  if (['1A', '1B', '3C', '7D'].includes(s.label)) s.status = SeatStatus.Occupied
+})
+seatMapsByTripId['t-1002']?.forEach((s) => {
+  if (['2A', '2B', '2C', '5D', '9A'].includes(s.label)) s.status = SeatStatus.Occupied
+})
 
 export const bookings: Booking[] = []
 
