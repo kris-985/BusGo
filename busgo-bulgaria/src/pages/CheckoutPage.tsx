@@ -44,7 +44,7 @@ export function CheckoutPage() {
           </div>
           <div className="mt-4">
             <Link
-              to={routes.search()}
+              to={routes.searchResults()}
               className="inline-flex h-10 items-center justify-center rounded-xl bg-slate-800 px-4 text-sm font-medium text-slate-100 transition-colors hover:bg-slate-700 active:bg-slate-800"
             >
               Search trips
@@ -240,8 +240,17 @@ export function CheckoutPage() {
                       paymentMethod: draft.paymentMethod,
                     })
 
+                    try {
+                      const raw = localStorage.getItem('busgo:bookingIds')
+                      const prev: string[] = raw ? JSON.parse(raw) : []
+                      const next = [bookingRes.id, ...prev.filter((id) => id !== bookingRes.id)].slice(0, 20)
+                      localStorage.setItem('busgo:bookingIds', JSON.stringify(next))
+                    } catch {
+                      // ignore storage errors (private mode, etc.)
+                    }
+
                     actions.reset()
-                    navigate(routes.confirmation(bookingRes.id))
+                    navigate(routes.success(bookingRes.id))
                   }}
                 >
                   {isSubmitting ? 'Booking…' : 'Confirm booking'}

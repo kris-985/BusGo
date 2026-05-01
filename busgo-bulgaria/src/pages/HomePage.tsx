@@ -35,7 +35,7 @@ export function HomePage() {
 
       <div>
         <Link
-          to={routes.search()}
+          to={routes.searchResults()}
           className="inline-flex h-10 items-center justify-center rounded-xl bg-slate-800 px-4 text-sm font-medium text-slate-100 transition-colors hover:bg-slate-700 active:bg-slate-800"
         >
           Go to search

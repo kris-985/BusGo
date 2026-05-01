@@ -42,7 +42,7 @@ export function SearchForm({ compact }: SearchFormProps) {
         params.set('to', values.toCityId)
         params.set('date', values.date)
         params.set('passengers', String(values.passengers))
-        navigate(`${routes.search()}?${params.toString()}`)
+        navigate(`${routes.searchResults()}?${params.toString()}`)
       }}
     >
       <div className={compact ? 'md:col-span-4' : 'md:col-span-3'}>
