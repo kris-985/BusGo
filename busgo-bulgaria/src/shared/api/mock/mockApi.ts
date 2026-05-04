@@ -120,6 +120,23 @@ export const mockApi: ApiClient = {
       const trip = trips.find((t) => t.id === input.tripId)
       if (!trip) return fail('Trip not found', 404)
 
+      const uniqueSeatIds = Array.from(new Set(input.seatIds)).filter(Boolean)
+      if (uniqueSeatIds.length === 0) return fail('No seats selected', 422)
+
+      const seatMap = seatMapsByTripId[input.tripId]
+      if (!seatMap) return fail('Seat map not found', 404)
+
+      const seatsById = new Map(seatMap.map((seat) => [seat.id, seat]))
+      for (const seatId of uniqueSeatIds) {
+        const seat = seatsById.get(seatId)
+        if (!seat) return fail(`Seat not found: ${seatId}`, 404)
+        if (seat.status === SeatStatus.Occupied) return fail(`Seat already occupied: ${seat.label}`, 409)
+      }
+
+      for (const seatId of uniqueSeatIds) {
+        seatsById.get(seatId)!.status = SeatStatus.Occupied
+      }
+
       const passengers = input.passengers.map((p, idx) => ({
         id: `p-${Date.now()}-${idx}`,
         ...p,
@@ -134,6 +151,7 @@ export const mockApi: ApiClient = {
         createdAt: new Date().toISOString(),
         status: 'CONFIRMED',
         trip,
+        seatIds: uniqueSeatIds,
         passengers,
         total: { amount: Math.round(totalAmount * 100) / 100, currency: trip.price.currency },
         paymentMethod: input.paymentMethod,
@@ -173,4 +191,3 @@ export const mockApi: ApiClient = {
     },
   },
 }
-

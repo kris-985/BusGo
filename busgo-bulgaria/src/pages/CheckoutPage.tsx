@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { routes } from '@/app/router/routes'
 import { useCreateBookingMutation } from '@/features/booking/api/mutations'
 import { useBookingStore } from '@/features/booking/model/useBookingStore'
+import { useSeatSelectionStore } from '@/features/seat-selection/model/useSeatSelectionStore'
 import { useTripByIdQuery } from '@/features/search-trips/api/queries'
 import { Button } from '@/shared/components/ui/Button'
 import { Card } from '@/shared/components/ui/Card'
@@ -16,6 +17,7 @@ export function CheckoutPage() {
   const navigate = useNavigate()
   const booking = useBookingStore()
   const { draft, actions } = booking
+  const seatActions = useSeatSelectionStore((s) => s.actions)
 
   const tripId = draft.tripId
   const tripQuery = useTripByIdQuery(tripId ?? '', Boolean(tripId))
@@ -56,6 +58,7 @@ export function CheckoutPage() {
   }
 
   const isSubmitting = createMutation.isPending
+  const hasSelectedSeats = draft.selectedSeatIds.length > 0
 
   return (
     <div className="grid gap-6">
@@ -200,6 +203,16 @@ export function CheckoutPage() {
               </div>
               <div className="mt-4 grid gap-2 text-sm text-slate-300">
                 <div className="flex items-center justify-between">
+                  <span className="text-slate-400">Seats</span>
+                  <span>{draft.selectedSeatIds.length}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-slate-400">Selected</span>
+                  <span className="text-right font-medium text-slate-100">
+                    {draft.selectedSeatIds.join(', ') || 'None'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
                   <span className="text-slate-400">Passengers</span>
                   <span>{draft.passengers.length}</span>
                 </div>
@@ -217,11 +230,18 @@ export function CheckoutPage() {
                 </div>
               ) : null}
 
+              {!hasSelectedSeats ? (
+                <div className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-200">
+                  Select at least one seat before checkout.
+                </div>
+              ) : null}
+
               <div className="mt-5">
                 <Button
                   className="w-full"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !hasSelectedSeats}
                   onClick={async () => {
+                    if (draft.selectedSeatIds.length === 0) return
                     const hasEmptyPassenger = draft.passengers.some(
                       (p) => !p.firstName.trim() || !p.lastName.trim(),
                     )
@@ -230,6 +250,7 @@ export function CheckoutPage() {
 
                     const bookingRes = await createMutation.mutateAsync({
                       tripId,
+                      seatIds: draft.selectedSeatIds,
                       passengers: draft.passengers.map((p) => ({
                         firstName: p.firstName.trim(),
                         lastName: p.lastName.trim(),
@@ -250,6 +271,7 @@ export function CheckoutPage() {
                     }
 
                     actions.reset()
+                    seatActions.clearTrip(tripId)
                     navigate(routes.success(bookingRes.id))
                   }}
                 >
@@ -266,4 +288,3 @@ export function CheckoutPage() {
     </div>
   )
 }
-

@@ -16,6 +16,7 @@ export type SearchTripsParams = {
 
 export type CreateBookingInput = {
   tripId: string
+  seatIds: string[]
   passengers: Array<{
     firstName: string
     lastName: string
@@ -78,4 +79,3 @@ export type ApiClient = {
 }
 
 export const apiClient: ApiClient = mockApi
-

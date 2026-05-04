@@ -178,7 +178,9 @@ export function SeatSelectionPage() {
                 className="w-full"
                 disabled={selectedSeatIds.length === 0}
                 onClick={() => {
+                  if (selectedSeatIds.length === 0) return
                   actions.setTripId(trip.id)
+                  actions.setSelectedSeatIds(selectedSeatIds)
                   navigate(routes.checkout())
                 }}
               >
@@ -195,7 +197,7 @@ export function SeatSelectionPage() {
             </div>
 
             <div className="mt-4 text-xs text-slate-500">
-              Seats are stored locally via Zustand. Occupied seats come from the mock API.
+              Select at least one seat to continue. Your selection is saved locally until checkout.
             </div>
           </Card>
         </div>
@@ -203,4 +205,3 @@ export function SeatSelectionPage() {
     </div>
   )
 }
-

@@ -1,7 +1,8 @@
 import { createBrowserRouter } from 'react-router-dom'
-import { Navigate, useParams } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 
 import { AppLayout } from '@/shared/layouts/AppLayout'
+import { LegacyConfirmationRedirect, LegacyTripRedirect } from '@/app/router/LegacyRedirects'
 import { CheckoutPage } from '@/pages/CheckoutPage'
 import { HomePage } from '@/pages/HomePage'
 import { MyBookingsPage } from '@/pages/MyBookingsPage'
@@ -11,16 +12,6 @@ import { SearchResultsPage } from '@/pages/SearchResultsPage'
 import { SeatSelectionPage } from '@/pages/SeatSelectionPage'
 import { SuccessPage } from '@/pages/SuccessPage'
 import { routes } from '@/app/router/routes'
-
-function LegacyTripRedirect() {
-  const { tripId } = useParams()
-  return <Navigate to={routes.seatSelection(tripId ?? '')} replace />
-}
-
-function LegacyConfirmationRedirect() {
-  const { bookingId } = useParams()
-  return <Navigate to={routes.success(bookingId ?? '')} replace />
-}
 
 export const router = createBrowserRouter([
   {
@@ -42,4 +33,3 @@ export const router = createBrowserRouter([
     ],
   },
 ])
-

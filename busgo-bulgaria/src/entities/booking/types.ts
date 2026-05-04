@@ -22,10 +22,10 @@ export interface Booking {
   createdAt: ISODateTime
   status: BookingStatus
   trip: Trip
+  seatIds: ID[]
   passengers: Passenger[]
   total: Money
   paymentMethod: PaymentMethod
   contactEmail: string
   contactPhone: string
 }
-
