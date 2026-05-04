@@ -39,6 +39,16 @@ export type SeatAvailability = {
   }>
 }
 
+export type SeatOccupancySummary = {
+  tripId: string
+  route: string
+  departureTime: string
+  totalSeats: number
+  occupiedSeats: number
+  freeSeats: number
+  occupancyRate: number
+}
+
 export type BookSeatsInput = {
   tripId: string
   seatIds: string[]
@@ -67,9 +77,11 @@ export type ApiClient = {
   }
   seats: {
     availabilityByTrip(tripId: string): Promise<ApiResult<SeatAvailability>>
+    occupancySummary(): Promise<ApiResult<SeatOccupancySummary[]>>
     book(input: BookSeatsInput): Promise<ApiResult<BookSeatsResult>>
   }
   bookings: {
+    list(): Promise<ApiResult<Booking[]>>
     create(input: CreateBookingInput): Promise<ApiResult<Booking>>
     byId(bookingId: string): Promise<ApiResult<Booking>>
   }

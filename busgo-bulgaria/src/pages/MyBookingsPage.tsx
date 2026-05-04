@@ -1,62 +1,192 @@
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { routes } from '@/app/router/routes'
+import type { Booking, BookingStatus } from '@/entities/booking/types'
+import { useBookingsQuery } from '@/features/booking/api/mutations'
 import { Card } from '@/shared/components/ui/Card'
+import { Spinner } from '@/shared/components/ui/Spinner'
+import { cn } from '@/shared/lib/cn'
+import { formatDate, formatMoney, formatTime } from '@/shared/lib/format'
 
-function readStoredBookingIds(): string[] {
-  try {
-    const raw = localStorage.getItem('busgo:bookingIds')
-    const parsed: unknown = raw ? JSON.parse(raw) : []
-    if (!Array.isArray(parsed)) return []
-    return parsed.filter((x): x is string => typeof x === 'string')
-  } catch {
-    return []
-  }
+function seatLabelFromId(seatId: string) {
+  const parts = seatId.split('-')
+  return parts[parts.length - 1] ?? seatId
 }
 
-export function MyBookingsPage() {
-  const bookingIds = readStoredBookingIds()
+function bookingTime(booking: Booking) {
+  return new Date(booking.trip.departureTime).getTime()
+}
+
+function statusClass(status: BookingStatus) {
+  if (status === 'CONFIRMED') return 'border-emerald-400/30 bg-emerald-500/10 text-emerald-200'
+  if (status === 'PENDING') return 'border-amber-400/30 bg-amber-500/10 text-amber-200'
+  return 'border-rose-400/30 bg-rose-500/10 text-rose-200'
+}
+
+function BookingCard({ booking }: { booking: Booking }) {
+  const seats = booking.seatIds.map((seatId, index) => ({
+    id: seatId,
+    label: seatLabelFromId(seatId),
+    passenger: booking.passengers[index],
+  }))
 
   return (
-    <div className="grid gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-100">My bookings</h1>
-        <p className="mt-2 text-sm text-slate-400">
-          This demo stores your recent booking IDs locally on this device.
-        </p>
-      </div>
+    <Card className="p-5">
+      <div className="grid gap-5 lg:grid-cols-12 lg:items-start">
+        <div className="lg:col-span-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="text-lg font-semibold text-slate-100">
+              {booking.trip.from.name} - {booking.trip.to.name}
+            </div>
+            <span className={cn('rounded-lg border px-2 py-0.5 text-xs font-medium', statusClass(booking.status))}>
+              {booking.status}
+            </span>
+          </div>
+          <div className="mt-2 font-mono text-xs text-slate-500">{booking.id}</div>
+          <div className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
+            <div>
+              <div className="text-slate-500">Date</div>
+              <div className="mt-0.5 font-medium text-slate-100">
+                {formatDate(booking.trip.departureTime)}
+              </div>
+            </div>
+            <div>
+              <div className="text-slate-500">Departure</div>
+              <div className="mt-0.5 font-medium text-slate-100">
+                {formatTime(booking.trip.departureTime)}
+              </div>
+            </div>
+            <div>
+              <div className="text-slate-500">Arrival</div>
+              <div className="mt-0.5 font-medium text-slate-100">
+                {formatTime(booking.trip.arrivalTime)}
+              </div>
+            </div>
+          </div>
+        </div>
 
-      {bookingIds.length === 0 ? (
-        <Card className="p-6">
-          <div className="text-sm text-slate-300">No bookings yet.</div>
+        <div className="lg:col-span-4">
+          <div className="text-sm text-slate-400">Seats</div>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {seats.map(({ id, label }) => (
+              <span
+                key={id}
+                className="inline-flex min-w-12 justify-center rounded-lg bg-sky-500/15 px-3 py-1 text-sm font-semibold text-sky-100 ring-1 ring-inset ring-sky-400/30"
+              >
+                {label}
+              </span>
+            ))}
+          </div>
+          <div className="mt-3 grid gap-1 text-sm text-slate-300">
+            {seats.map(({ id, passenger }) => (
+              <div key={id} className="flex items-center justify-between gap-3">
+                <span className="truncate">
+                  {passenger ? `${passenger.firstName} ${passenger.lastName}` : 'Passenger not assigned'}
+                </span>
+                <span className="shrink-0 text-xs text-slate-500">{passenger?.type ?? 'ADULT'}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="lg:col-span-3 lg:text-right">
+          <div className="text-sm text-slate-400">Total</div>
+          <div className="mt-1 text-xl font-semibold text-slate-100">
+            {formatMoney(booking.total)}
+          </div>
+          <div className="mt-2 text-sm text-slate-400">
+            {booking.trip.operator.name} - {booking.paymentMethod}
+          </div>
           <div className="mt-4">
             <Link
-              to={routes.searchResults()}
-              className="inline-flex h-10 items-center justify-center rounded-xl bg-slate-800 px-4 text-sm font-medium text-slate-100 transition-colors hover:bg-slate-700 active:bg-slate-800"
+              to={routes.success(booking.id)}
+              className="inline-flex h-9 items-center justify-center rounded-xl border border-slate-800 bg-slate-950 px-3 text-sm font-medium text-slate-100 transition-colors hover:bg-slate-900 active:bg-slate-950"
             >
-              Search trips
+              Open ticket
             </Link>
           </div>
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+function BookingSection({ title, bookings }: { title: string; bookings: Booking[] }) {
+  return (
+    <section className="grid gap-3">
+      <div className="flex items-end justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-100">{title}</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            {bookings.length} {bookings.length === 1 ? 'booking' : 'bookings'}
+          </p>
+        </div>
+      </div>
+
+      {bookings.length === 0 ? (
+        <Card className="p-5">
+          <div className="text-sm text-slate-400">No {title.toLowerCase()} bookings.</div>
         </Card>
       ) : (
         <div className="grid gap-3">
-          {bookingIds.map((id) => (
-            <Card key={id} className="flex items-center justify-between gap-3 p-5">
-              <div>
-                <div className="text-sm text-slate-400">Booking</div>
-                <div className="mt-1 font-mono text-sm text-slate-100">{id}</div>
-              </div>
-              <Link
-                to={routes.success(id)}
-                className="inline-flex h-9 items-center justify-center rounded-xl border border-slate-800 bg-slate-950 px-3 text-sm font-medium text-slate-100 transition-colors hover:bg-slate-900 active:bg-slate-950"
-              >
-                Open
-              </Link>
-            </Card>
+          {bookings.map((booking) => (
+            <BookingCard key={booking.id} booking={booking} />
           ))}
+        </div>
+      )}
+    </section>
+  )
+}
+
+export function MyBookingsPage() {
+  const query = useBookingsQuery()
+  const [now] = useState(() => Date.now())
+
+  const grouped = useMemo(() => {
+    const bookings = query.data ?? []
+    const upcoming = bookings
+      .filter((booking) => bookingTime(booking) >= now)
+      .sort((a, b) => bookingTime(a) - bookingTime(b))
+    const past = bookings
+      .filter((booking) => bookingTime(booking) < now)
+      .sort((a, b) => bookingTime(b) - bookingTime(a))
+
+    return { upcoming, past }
+  }, [now, query.data])
+
+  return (
+    <div className="grid gap-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-100">My bookings</h1>
+          <p className="mt-2 text-sm text-slate-400">
+            Mock booking history with route details, assigned seats, and ticket links.
+          </p>
+        </div>
+        <Link
+          to={routes.searchResults()}
+          className="inline-flex h-10 items-center justify-center rounded-xl bg-slate-800 px-4 text-sm font-medium text-slate-100 transition-colors hover:bg-slate-700 active:bg-slate-800"
+        >
+          Book trip
+        </Link>
+      </div>
+
+      {query.isLoading ? (
+        <Card className="flex items-center gap-3 p-6">
+          <Spinner />
+          <div className="text-sm text-slate-300">Loading bookings...</div>
+        </Card>
+      ) : query.isError ? (
+        <Card className="p-6">
+          <div className="text-sm text-rose-300">Failed to load bookings.</div>
+        </Card>
+      ) : (
+        <div className="grid gap-8">
+          <BookingSection title="Upcoming" bookings={grouped.upcoming} />
+          <BookingSection title="Past" bookings={grouped.past} />
         </div>
       )}
     </div>
   )
 }
-

@@ -5,7 +5,19 @@ import { apiClient } from '@/shared/api/apiClient'
 
 export const bookingKeys = {
   all: ['bookings'] as const,
+  list: () => [...bookingKeys.all, 'list'] as const,
   byId: (bookingId: string) => [...bookingKeys.all, 'byId', bookingId] as const,
+}
+
+export function useBookingsQuery() {
+  return useQuery({
+    queryKey: bookingKeys.list(),
+    queryFn: async () => {
+      const res = await apiClient.bookings.list()
+      if (!res.ok) throw new Error(res.error.message)
+      return res.data
+    },
+  })
 }
 
 export function useCreateBookingMutation() {
@@ -29,4 +41,3 @@ export function useBookingByIdQuery(bookingId: string, enabled: boolean) {
     },
   })
 }
-

@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom'
 
 import { AppLayout } from '@/shared/layouts/AppLayout'
 import { LegacyConfirmationRedirect, LegacyTripRedirect } from '@/app/router/LegacyRedirects'
+import { AdminDashboardPage } from '@/pages/AdminDashboardPage'
 import { CheckoutPage } from '@/pages/CheckoutPage'
 import { HomePage } from '@/pages/HomePage'
 import { MyBookingsPage } from '@/pages/MyBookingsPage'
@@ -23,6 +24,7 @@ export const router = createBrowserRouter([
       { path: '/checkout', element: <CheckoutPage /> },
       { path: `${routes.success(':bookingId')}`, element: <SuccessPage /> },
       { path: routes.myBookings(), element: <MyBookingsPage /> },
+      { path: routes.admin(), element: <AdminDashboardPage /> },
       { path: routes.profile(), element: <ProfilePage /> },
 
       // Legacy paths (redirects)

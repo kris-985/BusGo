@@ -34,6 +34,12 @@ export function Navbar() {
             My bookings
           </NavLink>
           <NavLink
+            to={routes.admin()}
+            className={({ isActive }) => cn(navLinkBase, isActive ? 'bg-slate-900 text-slate-100' : '')}
+          >
+            Admin
+          </NavLink>
+          <NavLink
             to={routes.profile()}
             className={({ isActive }) => cn(navLinkBase, isActive ? 'bg-slate-900 text-slate-100' : '')}
           >
@@ -44,4 +50,3 @@ export function Navbar() {
     </header>
   )
 }
-

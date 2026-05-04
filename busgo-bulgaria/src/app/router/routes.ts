@@ -5,6 +5,7 @@ export const routes = {
   checkout: () => '/checkout',
   success: (bookingId: string) => `/success/${bookingId}`,
   myBookings: () => '/my-bookings',
+  admin: () => '/admin',
   profile: () => '/profile',
 
   // Legacy aliases (kept for backwards compatibility)
@@ -12,4 +13,3 @@ export const routes = {
   trip: (tripId: string) => `/trips/${tripId}`,
   confirmation: (bookingId: string) => `/confirmation/${bookingId}`,
 } as const
-

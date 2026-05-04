@@ -5,6 +5,7 @@ type SeatSelectionState = {
   selectedSeatIdsByTripId: Record<string, string[]>
   actions: {
     toggleSeat(tripId: string, seatId: string): void
+    setSeats(tripId: string, seatIds: string[]): void
     clearTrip(tripId: string): void
     clearAll(): void
   }
@@ -25,6 +26,14 @@ export const useSeatSelectionStore = create<SeatSelectionState>()(
               selectedSeatIdsByTripId: { ...s.selectedSeatIdsByTripId, [tripId]: next },
             }
           }),
+        setSeats: (tripId, seatIds) =>
+          set((s) => ({
+            ...s,
+            selectedSeatIdsByTripId: {
+              ...s.selectedSeatIdsByTripId,
+              [tripId]: Array.from(new Set(seatIds)).filter(Boolean),
+            },
+          })),
         clearTrip: (tripId) =>
           set((s) => {
             const next = { ...s.selectedSeatIdsByTripId }

@@ -9,6 +9,7 @@ import type {
   PayInput,
   SearchTripsParams,
   SeatAvailability,
+  SeatOccupancySummary,
 } from '@/shared/api/apiClient'
 import type { ApiResult } from '@/shared/api/types'
 import { bookings, cities, routes, seatMapsByTripId, trips } from '@/shared/api/mock/db'
@@ -31,6 +32,52 @@ function dateOnly(iso: string) {
 
 function clone<T>(value: T): T {
   return structuredClone(value)
+}
+
+const lastRealtimeSeatUpdateByTripId: Record<string, number> = {}
+const realtimeSeatUpdateMs = 3000
+
+function applyRealtimeSeatUpdate(tripId: string) {
+  const now = Date.now()
+  const lastUpdate = lastRealtimeSeatUpdateByTripId[tripId] ?? 0
+
+  if (lastUpdate === 0) {
+    lastRealtimeSeatUpdateByTripId[tripId] = now
+    return
+  }
+
+  if (now - lastUpdate < realtimeSeatUpdateMs) return
+  lastRealtimeSeatUpdateByTripId[tripId] = now
+
+  const map = seatMapsByTripId[tripId]
+  if (!map) return
+
+  const freeSeats = map.filter((seat) => seat.status === SeatStatus.Free)
+  if (freeSeats.length === 0) return
+
+  const nextSeat = freeSeats[Math.floor(Math.random() * freeSeats.length)]
+  nextSeat.status = SeatStatus.Occupied
+}
+
+function seatOccupancySummary(): SeatOccupancySummary[] {
+  return trips.map((trip) => {
+    applyRealtimeSeatUpdate(trip.id)
+
+    const map = seatMapsByTripId[trip.id] ?? []
+    const occupiedSeats = map.filter((seat) => seat.status === SeatStatus.Occupied).length
+    const totalSeats = map.length
+    const freeSeats = Math.max(0, totalSeats - occupiedSeats)
+
+    return {
+      tripId: trip.id,
+      route: `${trip.from.name} - ${trip.to.name}`,
+      departureTime: trip.departureTime,
+      totalSeats,
+      occupiedSeats,
+      freeSeats,
+      occupancyRate: totalSeats > 0 ? Math.round((occupiedSeats / totalSeats) * 100) : 0,
+    }
+  })
 }
 
 export const mockApi: ApiClient = {
@@ -72,12 +119,18 @@ export const mockApi: ApiClient = {
       const map = seatMapsByTripId[tripId]
       if (!map) return fail('Seat map not found', 404)
 
+      applyRealtimeSeatUpdate(tripId)
+
       const res: SeatAvailability = {
         tripId,
         updatedAt: new Date().toISOString(),
         seats: clone(map),
       }
       return ok(res)
+    },
+    async occupancySummary() {
+      await sleep(220)
+      return ok(seatOccupancySummary())
     },
     async book(input: BookSeatsInput) {
       await sleep(420)
@@ -108,6 +161,10 @@ export const mockApi: ApiClient = {
     },
   },
   bookings: {
+    async list() {
+      await sleep(200)
+      return ok(clone(bookings))
+    },
     async create(input: CreateBookingInput) {
       await sleep(350)
       const trip = trips.find((t) => t.id === input.tripId)

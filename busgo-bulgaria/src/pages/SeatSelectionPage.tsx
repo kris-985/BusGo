@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { routes } from '@/app/router/routes'
@@ -36,10 +36,32 @@ export function SeatSelectionPage() {
     const occupiedIds = new Set(
       serverSeats.filter((s) => s.status === SeatStatus.Occupied).map((s) => s.id),
     )
+    const validSelectedSeatIds = selectedSeatIds.filter((seatId) => !occupiedIds.has(seatId))
+    const blockedSelectedSeatIds = selectedSeatIds.filter((seatId) => occupiedIds.has(seatId))
     const freeCount = serverSeats.filter((s) => s.status === SeatStatus.Free).length
-    const remainingFreeAfterSelection = Math.max(0, freeCount - selectedSeatIds.length)
-    return { serverSeats, occupiedIds, freeCount, remainingFreeAfterSelection }
-  }, [availabilityQuery.data, selectedSeatIds.length])
+    const remainingFreeAfterSelection = Math.max(0, freeCount - validSelectedSeatIds.length)
+    return {
+      serverSeats,
+      occupiedIds,
+      freeCount,
+      remainingFreeAfterSelection,
+      validSelectedSeatIds,
+      blockedSelectedSeatIds,
+    }
+  }, [availabilityQuery.data, selectedSeatIds])
+
+  useEffect(() => {
+    if (!availabilityQuery.data) return
+    if (derived.blockedSelectedSeatIds.length === 0) return
+
+    seatActions.setSeats(id, derived.validSelectedSeatIds)
+  }, [
+    availabilityQuery.data,
+    derived.blockedSelectedSeatIds.length,
+    derived.validSelectedSeatIds,
+    id,
+    seatActions,
+  ])
 
   return (
     <div className="grid gap-6">
@@ -79,12 +101,16 @@ export function SeatSelectionPage() {
                 <div className="mt-2 text-sm text-slate-300">
                   {formatDate(trip.departureTime)} • {formatTime(trip.departureTime)}–{formatTime(trip.arrivalTime)}
                 </div>
+                <div className="mt-3 inline-flex items-center gap-2 rounded-lg border border-emerald-400/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-200">
+                  <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                  {availabilityQuery.isFetching ? 'Syncing seats...' : 'Live seat updates'}
+                </div>
               </div>
 
               <div className="flex flex-wrap gap-3 text-sm">
                 <div className="rounded-xl border border-slate-800 bg-slate-950 px-3 py-2">
                   <div className="text-xs text-slate-400">Selected</div>
-                  <div className="mt-0.5 font-medium text-slate-100">{selectedSeatIds.length}</div>
+                  <div className="mt-0.5 font-medium text-slate-100">{derived.validSelectedSeatIds.length}</div>
                 </div>
                 <div className="rounded-xl border border-slate-800 bg-slate-950 px-3 py-2">
                   <div className="text-xs text-slate-400">Remaining</div>
@@ -111,6 +137,12 @@ export function SeatSelectionPage() {
             </div>
 
             <div className="mt-5">
+              {derived.blockedSelectedSeatIds.length > 0 ? (
+                <div className="mb-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-100">
+                  A selected seat was just taken and has been removed from your selection.
+                </div>
+              ) : null}
+
               {availabilityQuery.isLoading ? (
                 <div className="flex items-center gap-3 rounded-2xl border border-slate-800 bg-slate-950/40 p-6">
                   <Spinner />
@@ -176,11 +208,11 @@ export function SeatSelectionPage() {
             <div className="mt-6 grid gap-3">
               <Button
                 className="w-full"
-                disabled={selectedSeatIds.length === 0}
+                disabled={derived.validSelectedSeatIds.length === 0}
                 onClick={() => {
-                  if (selectedSeatIds.length === 0) return
+                  if (derived.validSelectedSeatIds.length === 0) return
                   actions.setTripId(trip.id)
-                  actions.setSelectedSeatIds(selectedSeatIds)
+                  actions.setSelectedSeatIds(derived.validSelectedSeatIds)
                   navigate(routes.checkout())
                 }}
               >

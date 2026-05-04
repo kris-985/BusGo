@@ -11,6 +11,8 @@ export function useSeatAvailabilityByTripQuery(tripId: string, enabled: boolean)
   return useQuery({
     queryKey: seatKeys.availabilityByTrip(tripId),
     enabled,
+    refetchInterval: enabled ? 3500 : false,
+    refetchIntervalInBackground: true,
     queryFn: async () => {
       const res = await apiClient.seats.availabilityByTrip(tripId)
       if (!res.ok) throw new Error(res.error.message)
@@ -18,4 +20,3 @@ export function useSeatAvailabilityByTripQuery(tripId: string, enabled: boolean)
     },
   })
 }
-
