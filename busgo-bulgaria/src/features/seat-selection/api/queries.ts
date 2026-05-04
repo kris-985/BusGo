@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { apiClient } from '@/shared/api/apiClient'
+import { throwApiError } from '@/shared/api/errors'
 
 export const seatKeys = {
   all: ['seats'] as const,
@@ -15,7 +16,7 @@ export function useSeatAvailabilityByTripQuery(tripId: string, enabled: boolean)
     refetchIntervalInBackground: true,
     queryFn: async () => {
       const res = await apiClient.seats.availabilityByTrip(tripId)
-      if (!res.ok) throw new Error(res.error.message)
+      if (!res.ok) throwApiError(res.error)
       return res.data
     },
   })

@@ -11,7 +11,7 @@ import type {
   SeatAvailability,
   SeatOccupancySummary,
 } from '@/shared/api/apiClient'
-import type { ApiResult } from '@/shared/api/types'
+import type { ApiErrorCode, ApiResult } from '@/shared/api/types'
 import { bookings, cities, routes, seatMapsByTripId, trips } from '@/shared/api/mock/db'
 
 function sleep(ms: number) {
@@ -22,8 +22,15 @@ function ok<T>(data: T): ApiResult<T> {
   return { ok: true, data }
 }
 
+function errorCodeFromStatus(status?: number): ApiErrorCode {
+  if (status === 401 || status === 403) return 'UNAUTHORIZED'
+  if (status === 404) return 'NOT_FOUND'
+  if (status === 409 || status === 422) return 'VALIDATION'
+  return 'UNKNOWN'
+}
+
 function fail(message: string, status?: number): ApiResult<never> {
-  return { ok: false, error: { code: 'UNKNOWN', message, status } }
+  return { ok: false, error: { code: errorCodeFromStatus(status), message, status } }
 }
 
 function dateOnly(iso: string) {
@@ -139,6 +146,7 @@ export const mockApi: ApiClient = {
 
       const map = seatMapsByTripId[input.tripId]
       if (!map) return fail('Seat map not found', 404)
+      if (!map.some((seat) => seat.status === SeatStatus.Free)) return fail('No seats available', 409)
 
       const uniqueSeatIds = Array.from(new Set(input.seatIds)).filter(Boolean)
       if (uniqueSeatIds.length === 0) return fail('No seats selected', 422)
@@ -175,6 +183,7 @@ export const mockApi: ApiClient = {
 
       const seatMap = seatMapsByTripId[input.tripId]
       if (!seatMap) return fail('Seat map not found', 404)
+      if (!seatMap.some((seat) => seat.status === SeatStatus.Free)) return fail('No seats available', 409)
 
       const seatsById = new Map(seatMap.map((seat) => [seat.id, seat]))
       for (const seatId of uniqueSeatIds) {

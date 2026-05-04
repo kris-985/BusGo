@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 
 import type { SearchTripsParams } from '@/shared/api/apiClient'
 import { apiClient } from '@/shared/api/apiClient'
+import { throwApiError } from '@/shared/api/errors'
 
 export const searchTripsKeys = {
   all: ['trips'] as const,
@@ -18,7 +19,7 @@ export function useCitiesQuery() {
     queryKey: citiesKeys.all,
     queryFn: async () => {
       const res = await apiClient.cities.list()
-      if (!res.ok) throw new Error(res.error.message)
+      if (!res.ok) throwApiError(res.error)
       return res.data
     },
   })
@@ -30,7 +31,7 @@ export function useSearchTripsQuery(params: SearchTripsParams, enabled: boolean)
     enabled,
     queryFn: async () => {
       const res = await apiClient.trips.search(params)
-      if (!res.ok) throw new Error(res.error.message)
+      if (!res.ok) throwApiError(res.error)
       return res.data
     },
   })
@@ -42,9 +43,8 @@ export function useTripByIdQuery(tripId: string, enabled: boolean) {
     enabled,
     queryFn: async () => {
       const res = await apiClient.trips.byId(tripId)
-      if (!res.ok) throw new Error(res.error.message)
+      if (!res.ok) throwApiError(res.error)
       return res.data
     },
   })
 }
-

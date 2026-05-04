@@ -6,6 +6,7 @@ import type { Booking, BookingStatus } from '@/entities/booking/types'
 import { useBookingsQuery } from '@/features/booking/api/mutations'
 import { Card } from '@/shared/components/ui/Card'
 import { Spinner } from '@/shared/components/ui/Spinner'
+import { getUserFriendlyErrorMessage } from '@/shared/api/errors'
 import { cn } from '@/shared/lib/cn'
 import { formatDate, formatMoney, formatTime } from '@/shared/lib/format'
 
@@ -179,7 +180,9 @@ export function MyBookingsPage() {
         </Card>
       ) : query.isError ? (
         <Card className="p-6">
-          <div className="text-sm text-rose-300">Failed to load bookings.</div>
+          <div className="text-sm text-rose-300">
+            {getUserFriendlyErrorMessage(query.error, 'We could not load your bookings. Please try again.')}
+          </div>
         </Card>
       ) : (
         <div className="grid gap-8">

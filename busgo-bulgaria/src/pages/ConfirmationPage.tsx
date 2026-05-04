@@ -4,6 +4,7 @@ import { routes } from '@/app/router/routes'
 import { useBookingByIdQuery } from '@/features/booking/api/mutations'
 import { Card } from '@/shared/components/ui/Card'
 import { Spinner } from '@/shared/components/ui/Spinner'
+import { getUserFriendlyErrorMessage } from '@/shared/api/errors'
 import { formatDate, formatMoney, formatTime } from '@/shared/lib/format'
 
 export function ConfirmationPage() {
@@ -25,7 +26,9 @@ export function ConfirmationPage() {
         </Card>
       ) : query.isError || !query.data ? (
         <Card className="p-6">
-          <div className="text-sm text-rose-300">Booking not found.</div>
+          <div className="text-sm text-rose-300">
+            {getUserFriendlyErrorMessage(query.error, 'We could not load this booking confirmation.')}
+          </div>
         </Card>
       ) : (
         <Card className="p-6">
@@ -82,4 +85,3 @@ export function ConfirmationPage() {
     </div>
   )
 }
-

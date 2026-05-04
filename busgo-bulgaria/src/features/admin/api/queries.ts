@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { apiClient } from '@/shared/api/apiClient'
+import { throwApiError } from '@/shared/api/errors'
 
 export const adminKeys = {
   all: ['admin'] as const,
@@ -13,7 +14,7 @@ export function useAdminRoutesQuery() {
     queryKey: adminKeys.routes(),
     queryFn: async () => {
       const res = await apiClient.routes.list()
-      if (!res.ok) throw new Error(res.error.message)
+      if (!res.ok) throwApiError(res.error)
       return res.data
     },
   })
@@ -26,7 +27,7 @@ export function useSeatOccupancySummaryQuery() {
     refetchIntervalInBackground: true,
     queryFn: async () => {
       const res = await apiClient.seats.occupancySummary()
-      if (!res.ok) throw new Error(res.error.message)
+      if (!res.ok) throwApiError(res.error)
       return res.data
     },
   })

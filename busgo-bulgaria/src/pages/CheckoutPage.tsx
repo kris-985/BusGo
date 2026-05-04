@@ -2,8 +2,10 @@ import { type FormEvent, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { routes } from '@/app/router/routes'
+import { SeatStatus } from '@/entities/seat/types'
 import { useCreateBookingMutation } from '@/features/booking/api/mutations'
 import { type DraftPassenger, useBookingStore } from '@/features/booking/model/useBookingStore'
+import { useSeatAvailabilityByTripQuery } from '@/features/seat-selection/api/queries'
 import { useSeatSelectionStore } from '@/features/seat-selection/model/useSeatSelectionStore'
 import { useTripByIdQuery } from '@/features/search-trips/api/queries'
 import { Button } from '@/shared/components/ui/Button'
@@ -11,6 +13,7 @@ import { Card } from '@/shared/components/ui/Card'
 import { Input } from '@/shared/components/ui/Input'
 import { Select } from '@/shared/components/ui/Select'
 import { Spinner } from '@/shared/components/ui/Spinner'
+import { getUserFriendlyErrorMessage } from '@/shared/api/errors'
 import { formatMoney } from '@/shared/lib/format'
 
 const emptyPassenger: DraftPassenger = {
@@ -31,9 +34,18 @@ function seatLabelFromId(seatId: string) {
   return parts[parts.length - 1] ?? seatId
 }
 
-function simulatePaymentSuccess() {
-  return new Promise<void>((resolve) => {
-    window.setTimeout(resolve, 850)
+function simulatePayment(method: string, cardNumber: string) {
+  return new Promise<void>((resolve, reject) => {
+    window.setTimeout(() => {
+      const cardDigits = cardNumber.replace(/\D/g, '')
+
+      if (method === 'CARD' && cardDigits.endsWith('0000')) {
+        reject(new Error('PAYMENT_DECLINED'))
+        return
+      }
+
+      resolve()
+    }, 850)
   })
 }
 
@@ -48,6 +60,7 @@ export function CheckoutPage() {
 
   const tripId = draft.tripId
   const tripQuery = useTripByIdQuery(tripId ?? '', Boolean(tripId))
+  const seatAvailabilityQuery = useSeatAvailabilityByTripQuery(tripId ?? '', Boolean(tripId))
   const createMutation = useCreateBookingMutation()
 
   useEffect(() => {
@@ -78,9 +91,26 @@ export function CheckoutPage() {
     return { amount: Math.round(amount * 100) / 100, currency: trip.price.currency }
   }, [draft.selectedSeatIds.length, tripQuery.data])
 
+  const seatAvailability = useMemo(() => {
+    const seats = seatAvailabilityQuery.data?.seats ?? []
+    const seatsById = new Map(seats.map((seat) => [seat.id, seat]))
+    const unavailableSeatIds = draft.selectedSeatIds.filter((seatId) => {
+      const seat = seatsById.get(seatId)
+      return !seat || seat.status === SeatStatus.Occupied
+    })
+    const freeSeatCount = seats.filter((seat) => seat.status === SeatStatus.Free).length
+
+    return {
+      unavailableSeatIds,
+      unavailableSeatLabels: unavailableSeatIds.map(seatLabelFromId),
+      noSeatsAvailable: seats.length > 0 && freeSeatCount === 0,
+    }
+  }, [draft.selectedSeatIds, seatAvailabilityQuery.data])
+
   const isSubmitting = createMutation.isPending
   const isPaymentProcessing = paymentStatus === 'processing'
   const hasSelectedSeats = draft.selectedSeatIds.length > 0
+  const hasUnavailableSelectedSeats = seatAvailability.unavailableSeatIds.length > 0
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -94,6 +124,16 @@ export function CheckoutPage() {
 
     if (draft.selectedSeatIds.length === 0) {
       setSubmitError('Select at least one seat before checkout.')
+      return
+    }
+
+    if (hasUnavailableSelectedSeats) {
+      setSubmitError('One of your selected seats was just taken. Please choose another available seat.')
+      return
+    }
+
+    if (seatAvailability.noSeatsAvailable) {
+      setSubmitError('This trip is fully booked. Please choose another trip.')
       return
     }
 
@@ -132,7 +172,7 @@ export function CheckoutPage() {
 
     try {
       setPaymentStatus('processing')
-      await simulatePaymentSuccess()
+      await simulatePayment(draft.paymentMethod, paymentForm.cardNumber)
       setPaymentStatus('succeeded')
 
       const bookingRes = await createMutation.mutateAsync({
@@ -162,7 +202,7 @@ export function CheckoutPage() {
       navigate(routes.success(bookingRes.id))
     } catch (error) {
       setPaymentStatus('idle')
-      setSubmitError(error instanceof Error ? error.message : 'Failed to create booking.')
+      setSubmitError(getUserFriendlyErrorMessage(error, 'We could not complete checkout. Please try again.'))
     }
   }
 
@@ -212,7 +252,9 @@ export function CheckoutPage() {
         </Card>
       ) : tripQuery.isError || !tripQuery.data ? (
         <Card className="p-6">
-          <div className="text-sm text-rose-300">Failed to load trip.</div>
+          <div className="text-sm text-rose-300">
+            {getUserFriendlyErrorMessage(tripQuery.error, 'We could not load this trip. Please try again.')}
+          </div>
         </Card>
       ) : (
         <form className="grid gap-6 lg:grid-cols-3" onSubmit={handleSubmit}>
@@ -399,9 +441,24 @@ export function CheckoutPage() {
                 </div>
               </div>
 
+              {seatAvailabilityQuery.isError ? (
+                <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-100">
+                  {getUserFriendlyErrorMessage(
+                    seatAvailabilityQuery.error,
+                    'We could not refresh seat availability. Booking will be checked again before confirmation.',
+                  )}
+                </div>
+              ) : null}
+
+              {hasUnavailableSelectedSeats ? (
+                <div className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-200">
+                  Seats {seatAvailability.unavailableSeatLabels.join(', ')} are no longer available.
+                </div>
+              ) : null}
+
               {submitError || createMutation.isError ? (
                 <div className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-200">
-                  {submitError ?? 'Failed to create booking.'}
+                  {submitError ?? getUserFriendlyErrorMessage(createMutation.error, 'We could not create your booking. Please try again.')}
                 </div>
               ) : null}
 
@@ -415,7 +472,7 @@ export function CheckoutPage() {
                 <Button
                   type="submit"
                   className="w-full"
-                  disabled={isSubmitting || isPaymentProcessing || !hasSelectedSeats}
+                  disabled={isSubmitting || isPaymentProcessing || !hasSelectedSeats || hasUnavailableSelectedSeats}
                 >
                   {isPaymentProcessing
                     ? 'Processing payment...'

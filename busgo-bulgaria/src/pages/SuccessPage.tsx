@@ -5,6 +5,7 @@ import { routes } from '@/app/router/routes'
 import { useBookingByIdQuery } from '@/features/booking/api/mutations'
 import { Card } from '@/shared/components/ui/Card'
 import { Spinner } from '@/shared/components/ui/Spinner'
+import { getUserFriendlyErrorMessage } from '@/shared/api/errors'
 import { formatDate, formatMoney, formatTime } from '@/shared/lib/format'
 
 function seatLabelFromId(seatId: string) {
@@ -40,7 +41,9 @@ export function SuccessPage() {
           <p className="mt-2 text-sm text-slate-400">We could not load this confirmation.</p>
         </div>
         <Card className="p-6">
-          <div className="text-sm text-rose-300">Booking not found.</div>
+          <div className="text-sm text-rose-300">
+            {getUserFriendlyErrorMessage(query.error, 'We could not load this booking confirmation.')}
+          </div>
           <div className="mt-4">
             <Link
               to={routes.myBookings()}

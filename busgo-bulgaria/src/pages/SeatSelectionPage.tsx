@@ -10,6 +10,7 @@ import { useBookingStore } from '@/features/booking/model/useBookingStore'
 import { Button } from '@/shared/components/ui/Button'
 import { Card } from '@/shared/components/ui/Card'
 import { Spinner } from '@/shared/components/ui/Spinner'
+import { getUserFriendlyErrorMessage } from '@/shared/api/errors'
 import { cn } from '@/shared/lib/cn'
 import { formatDate, formatMoney, formatTime } from '@/shared/lib/format'
 
@@ -40,6 +41,7 @@ export function SeatSelectionPage() {
     const blockedSelectedSeatIds = selectedSeatIds.filter((seatId) => occupiedIds.has(seatId))
     const freeCount = serverSeats.filter((s) => s.status === SeatStatus.Free).length
     const remainingFreeAfterSelection = Math.max(0, freeCount - validSelectedSeatIds.length)
+    const noSeatsAvailable = serverSeats.length > 0 && freeCount === 0
     return {
       serverSeats,
       occupiedIds,
@@ -47,6 +49,7 @@ export function SeatSelectionPage() {
       remainingFreeAfterSelection,
       validSelectedSeatIds,
       blockedSelectedSeatIds,
+      noSeatsAvailable,
     }
   }, [availabilityQuery.data, selectedSeatIds])
 
@@ -87,7 +90,9 @@ export function SeatSelectionPage() {
         </Card>
       ) : query.isError || !trip ? (
         <Card className="p-6">
-          <div className="text-sm text-rose-300">Trip not found.</div>
+          <div className="text-sm text-rose-300">
+            {getUserFriendlyErrorMessage(query.error, 'We could not load this trip. Please try again.')}
+          </div>
         </Card>
       ) : (
         <div className="grid gap-6 lg:grid-cols-3">
@@ -150,10 +155,19 @@ export function SeatSelectionPage() {
                 </div>
               ) : availabilityQuery.isError || !availabilityQuery.data ? (
                 <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-200">
-                  Failed to load seat availability.
+                  {getUserFriendlyErrorMessage(
+                    availabilityQuery.error,
+                    'We could not load seat availability. Please try again.',
+                  )}
                 </div>
               ) : (
                 <div className="mx-auto max-w-xl">
+                  {derived.noSeatsAvailable ? (
+                    <div className="mb-4 rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-200">
+                      No seats are available for this trip. Please choose another departure.
+                    </div>
+                  ) : null}
+
                   <div className="mb-3 flex items-center justify-center text-xs text-slate-400">
                     Front of bus
                   </div>
@@ -204,6 +218,11 @@ export function SeatSelectionPage() {
             <div className="text-sm text-slate-400">Price</div>
             <div className="mt-1 text-2xl font-semibold text-slate-100">{formatMoney(trip.price)}</div>
             <div className="mt-2 text-sm text-slate-400">Seats left: {trip.seatsLeft}</div>
+            {derived.noSeatsAvailable ? (
+              <div className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-200">
+                This trip is fully booked.
+              </div>
+            ) : null}
 
             <div className="mt-6 grid gap-3">
               <Button

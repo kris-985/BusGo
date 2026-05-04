@@ -2,6 +2,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 
 import type { CreateBookingInput } from '@/shared/api/apiClient'
 import { apiClient } from '@/shared/api/apiClient'
+import { throwApiError } from '@/shared/api/errors'
 
 export const bookingKeys = {
   all: ['bookings'] as const,
@@ -14,7 +15,7 @@ export function useBookingsQuery() {
     queryKey: bookingKeys.list(),
     queryFn: async () => {
       const res = await apiClient.bookings.list()
-      if (!res.ok) throw new Error(res.error.message)
+      if (!res.ok) throwApiError(res.error)
       return res.data
     },
   })
@@ -24,7 +25,7 @@ export function useCreateBookingMutation() {
   return useMutation({
     mutationFn: async (input: CreateBookingInput) => {
       const res = await apiClient.bookings.create(input)
-      if (!res.ok) throw new Error(res.error.message)
+      if (!res.ok) throwApiError(res.error)
       return res.data
     },
   })
@@ -36,7 +37,7 @@ export function useBookingByIdQuery(bookingId: string, enabled: boolean) {
     enabled,
     queryFn: async () => {
       const res = await apiClient.bookings.byId(bookingId)
-      if (!res.ok) throw new Error(res.error.message)
+      if (!res.ok) throwApiError(res.error)
       return res.data
     },
   })

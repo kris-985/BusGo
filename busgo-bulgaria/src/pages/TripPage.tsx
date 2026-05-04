@@ -7,6 +7,7 @@ import { useBookingStore } from '@/features/booking/model/useBookingStore'
 import { Button } from '@/shared/components/ui/Button'
 import { Card } from '@/shared/components/ui/Card'
 import { Spinner } from '@/shared/components/ui/Spinner'
+import { getUserFriendlyErrorMessage } from '@/shared/api/errors'
 import { formatDate, formatMoney, formatTime } from '@/shared/lib/format'
 
 export function TripPage() {
@@ -45,7 +46,9 @@ export function TripPage() {
         </Card>
       ) : query.isError || !trip ? (
         <Card className="p-6">
-          <div className="text-sm text-rose-300">Trip not found.</div>
+          <div className="text-sm text-rose-300">
+            {getUserFriendlyErrorMessage(query.error, 'We could not load this trip. Please try again.')}
+          </div>
         </Card>
       ) : (
         <Card className="p-6">
@@ -110,4 +113,3 @@ export function TripPage() {
     </div>
   )
 }
-
