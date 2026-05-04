@@ -1,5 +1,4 @@
 import type { Booking } from '@/entities/booking/types'
-import type { PassengerType } from '@/entities/passenger/types'
 import type { Payment } from '@/entities/payment/types'
 import { PaymentStatus } from '@/entities/payment/types'
 import { SeatStatus } from '@/entities/seat/types'
@@ -28,12 +27,6 @@ function fail(message: string, status?: number): ApiResult<never> {
 
 function dateOnly(iso: string) {
   return iso.slice(0, 10)
-}
-
-function passengerMultiplier(type: PassengerType) {
-  if (type === 'CHILD') return 0.7
-  if (type === 'SENIOR') return 0.85
-  return 1
 }
 
 function clone<T>(value: T): T {
@@ -142,9 +135,7 @@ export const mockApi: ApiClient = {
         ...p,
       }))
 
-      const totalAmount = passengers.reduce((sum, p) => {
-        return sum + trip.price.amount * passengerMultiplier(p.type)
-      }, 0)
+      const totalAmount = uniqueSeatIds.length * trip.price.amount
 
       const booking: Booking = {
         id: `b-${Date.now()}`,
