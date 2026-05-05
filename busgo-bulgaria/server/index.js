@@ -19,12 +19,24 @@ const cityIdByName = new Map([
 ])
 
 const cityOrder = ['Sofia', 'Plovdiv', 'Varna', 'Burgas', 'Stara Zagora']
+const cityCoordinates = new Map([
+  ['Sofia', { lat: 42.6977, lon: 23.3219 }],
+  ['Plovdiv', { lat: 42.1354, lon: 24.7453 }],
+  ['Varna', { lat: 43.2141, lon: 27.9147 }],
+  ['Burgas', { lat: 42.5048, lon: 27.4626 }],
+  ['Stara Zagora', { lat: 42.4258, lon: 25.6345 }],
+])
 const distanceByRoute = new Map([
   ['Sofia-Plovdiv', 146],
+  ['Plovdiv-Sofia', 146],
   ['Sofia-Varna', 470],
+  ['Varna-Sofia', 470],
   ['Plovdiv-Burgas', 253],
+  ['Burgas-Plovdiv', 253],
   ['Varna-Burgas', 133],
+  ['Burgas-Varna', 133],
   ['Sofia-Stara Zagora', 231],
+  ['Stara Zagora-Sofia', 231],
 ])
 const apiDelayMs = Number(process.env.API_DELAY_MS ?? 500)
 
@@ -79,6 +91,80 @@ function routeKey(route) {
   return `${route.fromCity}-${route.toCity}`
 }
 
+function pairKey(fromCity, toCity) {
+  return `${fromCity}-${toCity}`
+}
+
+function roadDistanceKm(fromCity, toCity) {
+  const knownDistance = distanceByRoute.get(pairKey(fromCity, toCity))
+  if (knownDistance) return knownDistance
+
+  const from = cityCoordinates.get(fromCity)
+  const to = cityCoordinates.get(toCity)
+  if (!from || !to) return 220
+
+  const earthRadiusKm = 6371
+  const dLat = ((to.lat - from.lat) * Math.PI) / 180
+  const dLon = ((to.lon - from.lon) * Math.PI) / 180
+  const fromLat = (from.lat * Math.PI) / 180
+  const toLat = (to.lat * Math.PI) / 180
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(fromLat) * Math.cos(toLat) * Math.sin(dLon / 2) ** 2
+  const straightLineKm = earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  return Math.max(80, Math.round(straightLineKm * 1.28))
+}
+
+function addMinutes(iso, minutes) {
+  return new Date(new Date(iso).getTime() + minutes * 60000).toISOString()
+}
+
+function demoRouteId(fromCity, toCity, departureTime) {
+  const departure = new Date(departureTime)
+  const hhmm = departure.toISOString().slice(11, 16).replace(':', '')
+  return `bg-${slug(fromCity).slice(0, 12)}-${slug(toCity).slice(0, 12)}-${hhmm}`
+}
+
+function ensureCompleteCityRoutes(routes) {
+  const byPair = new Set(routes.map((route) => pairKey(route.fromCity, route.toCity)))
+  const completeRoutes = [...routes]
+  const departures = [
+    { hour: 7, minute: 0, seatOffset: 0 },
+    { hour: 12, minute: 30, seatOffset: 7 },
+    { hour: 18, minute: 0, seatOffset: 13 },
+  ]
+
+  for (const fromCity of cityOrder) {
+    for (const toCity of cityOrder) {
+      if (fromCity === toCity || byPair.has(pairKey(fromCity, toCity))) continue
+
+      const distanceKm = roadDistanceKm(fromCity, toCity)
+      const durationMinutes = Math.max(80, Math.round(distanceKm / 72 * 60 + 20))
+      const basePrice = Math.round((12 + distanceKm * 0.075) * 10) / 10
+
+      for (const departure of departures) {
+        const departureTime = new Date(Date.UTC(2026, 4, 5, departure.hour, departure.minute)).toISOString()
+        const availableSeats = Math.max(8, 34 - departure.seatOffset - (distanceKm % 5))
+        completeRoutes.push({
+          id: demoRouteId(fromCity, toCity, departureTime),
+          fromCity,
+          toCity,
+          departureTime,
+          arrivalTime: addMinutes(departureTime, durationMinutes),
+          price: Math.round((basePrice + departure.seatOffset * 0.35) * 100) / 100,
+          availableSeats,
+          totalSeats: 40,
+          distanceKm,
+        })
+      }
+
+      byPair.add(pairKey(fromCity, toCity))
+    }
+  }
+
+  return completeRoutes
+}
+
 function knownCities(routes) {
   const cities = new Map(cityOrder.map((name) => [normalize(name), cityByName(name)]))
   for (const route of routes) {
@@ -124,7 +210,7 @@ function buildSeatMap(route) {
         label,
         row,
         column: columnIndex + 1,
-        status: occupiedSeatIds.has(id) ? 'Occupied' : 'Free',
+        status: occupiedSeatIds.has(id) ? 'OCCUPIED' : 'FREE',
       })
     }
   }
@@ -143,7 +229,7 @@ async function readDb() {
   const raw = await readFile(dbPath, 'utf8')
   const db = JSON.parse(raw)
   db.bookings ??= []
-  db.routes = db.routes.map((route) => {
+  db.routes = ensureCompleteCityRoutes(db.routes).map((route) => {
     const occupiedSeatIds = Array.isArray(route.occupiedSeatIds)
       ? route.occupiedSeatIds
       : initialOccupiedSeatIds(route)
