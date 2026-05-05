@@ -13,6 +13,28 @@ export type SearchFormProps = {
   compact?: boolean
 }
 
+const emptyCities: Array<{ id: string; name: string }> = []
+
+function cleanSearchValue(value: string | null, fallback: string) {
+  const trimmed = value?.trim()
+  return trimmed ? trimmed : fallback
+}
+
+function normalizeSearchValue(value: string) {
+  return value.trim().toLowerCase()
+}
+
+function resolveCitySelectValue(value: string, cities: Array<{ id: string; name: string }>) {
+  const normalized = normalizeSearchValue(value)
+  const city = cities.find(
+    (item) =>
+      normalizeSearchValue(item.id) === normalized ||
+      normalizeSearchValue(item.name) === normalized,
+  )
+
+  return city?.name ?? value.trim()
+}
+
 export function SearchForm({ compact }: SearchFormProps) {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -20,9 +42,9 @@ export function SearchForm({ compact }: SearchFormProps) {
 
   const initial: TripSearchFormValues = useMemo(
     () => ({
-      fromCityId: searchParams.get('from') ?? 'sof',
-      toCityId: searchParams.get('to') ?? 'pld',
-      date: searchParams.get('date') ?? todayYmd(),
+      fromCityId: cleanSearchValue(searchParams.get('from'), 'Sofia'),
+      toCityId: cleanSearchValue(searchParams.get('to'), 'Plovdiv'),
+      date: cleanSearchValue(searchParams.get('date'), todayYmd()),
       passengers: parsePassengers(searchParams.get('passengers')),
     }),
     [searchParams],
@@ -30,29 +52,36 @@ export function SearchForm({ compact }: SearchFormProps) {
 
   const [values, setValues] = useState<TripSearchFormValues>(initial)
 
-  const cities = citiesQuery.data ?? []
+  const cities = citiesQuery.data ?? emptyCities
 
   return (
     <form
       className="grid gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/80 md:grid-cols-12 md:items-end"
       onSubmit={(e) => {
         e.preventDefault()
+        const nextValues = {
+          ...values,
+          fromCityId: resolveCitySelectValue(values.fromCityId, cities),
+          toCityId: resolveCitySelectValue(values.toCityId, cities),
+          date: values.date.trim(),
+        }
         const params = new URLSearchParams()
-        params.set('from', values.fromCityId)
-        params.set('to', values.toCityId)
-        params.set('date', values.date)
-        params.set('passengers', String(values.passengers))
+        params.set('from', nextValues.fromCityId)
+        params.set('to', nextValues.toCityId)
+        params.set('date', nextValues.date)
+        params.set('passengers', String(nextValues.passengers))
+        console.debug('[BusGo SearchForm] submit', nextValues)
         navigate(`${routes.searchResults()}?${params.toString()}`)
       }}
     >
       <div className={compact ? 'md:col-span-3' : 'md:col-span-3'}>
         <Select
           label="From"
-          value={values.fromCityId}
+          value={resolveCitySelectValue(values.fromCityId, cities)}
           onChange={(e) => setValues((v) => ({ ...v, fromCityId: e.target.value }))}
         >
           {cities.map((c) => (
-            <option key={c.id} value={c.id}>
+            <option key={c.id} value={c.name}>
               {c.name}
             </option>
           ))}
@@ -61,11 +90,11 @@ export function SearchForm({ compact }: SearchFormProps) {
       <div className={compact ? 'md:col-span-3' : 'md:col-span-3'}>
         <Select
           label="To"
-          value={values.toCityId}
+          value={resolveCitySelectValue(values.toCityId, cities)}
           onChange={(e) => setValues((v) => ({ ...v, toCityId: e.target.value }))}
         >
           {cities.map((c) => (
-            <option key={c.id} value={c.id}>
+            <option key={c.id} value={c.name}>
               {c.name}
             </option>
           ))}

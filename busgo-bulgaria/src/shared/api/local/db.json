@@ -1,0 +1,204 @@
+{
+  "routes": [
+    {
+      "id": "bg-sof-pld-0600",
+      "fromCity": "Sofia",
+      "toCity": "Plovdiv",
+      "departureTime": "2026-05-05T06:00:00+03:00",
+      "arrivalTime": "2026-05-05T08:20:00+03:00",
+      "price": 24.9,
+      "availableSeats": 28,
+      "totalSeats": 40
+    },
+    {
+      "id": "bg-sof-pld-0830",
+      "fromCity": "Sofia",
+      "toCity": "Plovdiv",
+      "departureTime": "2026-05-05T08:30:00+03:00",
+      "arrivalTime": "2026-05-05T10:50:00+03:00",
+      "price": 26.9,
+      "availableSeats": 18,
+      "totalSeats": 40
+    },
+    {
+      "id": "bg-sof-pld-1230",
+      "fromCity": "Sofia",
+      "toCity": "Plovdiv",
+      "departureTime": "2026-05-05T12:30:00+03:00",
+      "arrivalTime": "2026-05-05T14:55:00+03:00",
+      "price": 25.9,
+      "availableSeats": 33,
+      "totalSeats": 40
+    },
+    {
+      "id": "bg-sof-pld-1800",
+      "fromCity": "Sofia",
+      "toCity": "Plovdiv",
+      "departureTime": "2026-05-05T18:00:00+03:00",
+      "arrivalTime": "2026-05-05T20:25:00+03:00",
+      "price": 27.9,
+      "availableSeats": 14,
+      "totalSeats": 40
+    },
+    {
+      "id": "bg-sof-var-0700",
+      "fromCity": "Sofia",
+      "toCity": "Varna",
+      "departureTime": "2026-05-05T07:00:00+03:00",
+      "arrivalTime": "2026-05-05T13:35:00+03:00",
+      "price": 42.9,
+      "availableSeats": 21,
+      "totalSeats": 40
+    },
+    {
+      "id": "bg-sof-var-0930",
+      "fromCity": "Sofia",
+      "toCity": "Varna",
+      "departureTime": "2026-05-05T09:30:00+03:00",
+      "arrivalTime": "2026-05-05T16:10:00+03:00",
+      "price": 44.9,
+      "availableSeats": 16,
+      "totalSeats": 40
+    },
+    {
+      "id": "bg-sof-var-1430",
+      "fromCity": "Sofia",
+      "toCity": "Varna",
+      "departureTime": "2026-05-05T14:30:00+03:00",
+      "arrivalTime": "2026-05-05T21:15:00+03:00",
+      "price": 41.9,
+      "availableSeats": 25,
+      "totalSeats": 40
+    },
+    {
+      "id": "bg-sof-var-2300",
+      "fromCity": "Sofia",
+      "toCity": "Varna",
+      "departureTime": "2026-05-05T23:00:00+03:00",
+      "arrivalTime": "2026-05-06T05:35:00+03:00",
+      "price": 39.9,
+      "availableSeats": 9,
+      "totalSeats": 40
+    },
+    {
+      "id": "bg-pld-bgs-0645",
+      "fromCity": "Plovdiv",
+      "toCity": "Burgas",
+      "departureTime": "2026-05-05T06:45:00+03:00",
+      "arrivalTime": "2026-05-05T10:35:00+03:00",
+      "price": 31.9,
+      "availableSeats": 30,
+      "totalSeats": 40
+    },
+    {
+      "id": "bg-pld-bgs-1015",
+      "fromCity": "Plovdiv",
+      "toCity": "Burgas",
+      "departureTime": "2026-05-05T10:15:00+03:00",
+      "arrivalTime": "2026-05-05T14:05:00+03:00",
+      "price": 33.9,
+      "availableSeats": 17,
+      "totalSeats": 40
+    },
+    {
+      "id": "bg-pld-bgs-1515",
+      "fromCity": "Plovdiv",
+      "toCity": "Burgas",
+      "departureTime": "2026-05-05T15:15:00+03:00",
+      "arrivalTime": "2026-05-05T19:00:00+03:00",
+      "price": 32.9,
+      "availableSeats": 22,
+      "totalSeats": 40
+    },
+    {
+      "id": "bg-pld-bgs-1930",
+      "fromCity": "Plovdiv",
+      "toCity": "Burgas",
+      "departureTime": "2026-05-05T19:30:00+03:00",
+      "arrivalTime": "2026-05-05T23:20:00+03:00",
+      "price": 30.9,
+      "availableSeats": 12,
+      "totalSeats": 40
+    },
+    {
+      "id": "bg-var-bgs-0730",
+      "fromCity": "Varna",
+      "toCity": "Burgas",
+      "departureTime": "2026-05-05T07:30:00+03:00",
+      "arrivalTime": "2026-05-05T10:05:00+03:00",
+      "price": 23.9,
+      "availableSeats": 27,
+      "totalSeats": 40
+    },
+    {
+      "id": "bg-var-bgs-1115",
+      "fromCity": "Varna",
+      "toCity": "Burgas",
+      "departureTime": "2026-05-05T11:15:00+03:00",
+      "arrivalTime": "2026-05-05T13:50:00+03:00",
+      "price": 24.9,
+      "availableSeats": 19,
+      "totalSeats": 40
+    },
+    {
+      "id": "bg-var-bgs-1600",
+      "fromCity": "Varna",
+      "toCity": "Burgas",
+      "departureTime": "2026-05-05T16:00:00+03:00",
+      "arrivalTime": "2026-05-05T18:40:00+03:00",
+      "price": 22.9,
+      "availableSeats": 34,
+      "totalSeats": 40
+    },
+    {
+      "id": "bg-var-bgs-2030",
+      "fromCity": "Varna",
+      "toCity": "Burgas",
+      "departureTime": "2026-05-05T20:30:00+03:00",
+      "arrivalTime": "2026-05-05T23:05:00+03:00",
+      "price": 21.9,
+      "availableSeats": 11,
+      "totalSeats": 40
+    },
+    {
+      "id": "bg-sof-szg-0615",
+      "fromCity": "Sofia",
+      "toCity": "Stara Zagora",
+      "departureTime": "2026-05-05T06:15:00+03:00",
+      "arrivalTime": "2026-05-05T09:55:00+03:00",
+      "price": 29.9,
+      "availableSeats": 24,
+      "totalSeats": 40
+    },
+    {
+      "id": "bg-sof-szg-1100",
+      "fromCity": "Sofia",
+      "toCity": "Stara Zagora",
+      "departureTime": "2026-05-05T11:00:00+03:00",
+      "arrivalTime": "2026-05-05T14:40:00+03:00",
+      "price": 31.9,
+      "availableSeats": 15,
+      "totalSeats": 40
+    },
+    {
+      "id": "bg-sof-szg-1530",
+      "fromCity": "Sofia",
+      "toCity": "Stara Zagora",
+      "departureTime": "2026-05-05T15:30:00+03:00",
+      "arrivalTime": "2026-05-05T19:15:00+03:00",
+      "price": 30.9,
+      "availableSeats": 29,
+      "totalSeats": 40
+    },
+    {
+      "id": "bg-sof-szg-2000",
+      "fromCity": "Sofia",
+      "toCity": "Stara Zagora",
+      "departureTime": "2026-05-05T20:00:00+03:00",
+      "arrivalTime": "2026-05-05T23:35:00+03:00",
+      "price": 28.9,
+      "availableSeats": 8,
+      "totalSeats": 40
+    }
+  ]
+}

@@ -5,7 +5,7 @@ import type { Payment } from '@/entities/payment/types'
 import type { SeatStatus } from '@/entities/seat/types'
 import type { Trip } from '@/entities/trip/types'
 import type { ApiResult } from '@/shared/api/types'
-import { mockApi } from '@/shared/api/mock/mockApi'
+import { httpApi } from '@/shared/api/httpApi'
 
 export type SearchTripsParams = {
   fromCityId: string
@@ -90,4 +90,4 @@ export type ApiClient = {
   }
 }
 
-export const apiClient: ApiClient = mockApi
+export const apiClient: ApiClient = httpApi

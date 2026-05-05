@@ -5,12 +5,17 @@ import { routes } from '@/app/router/routes'
 import { useSearchTripsQuery } from '@/features/search-trips/api/queries'
 import { parsePassengers } from '@/features/search-trips/model/searchParams'
 import { SearchForm } from '@/features/search-trips/ui/SearchForm'
+import { NoRoutesEmptyState, RouteSearchSkeleton } from '@/features/search-trips/ui/TripsList'
 import { useBookingStore } from '@/features/booking/model/useBookingStore'
 import { Button } from '@/shared/components/ui/Button'
 import { Card } from '@/shared/components/ui/Card'
-import { Spinner } from '@/shared/components/ui/Spinner'
 import { getUserFriendlyErrorMessage } from '@/shared/api/errors'
 import { formatMoney, formatTime, todayYmd } from '@/shared/lib/format'
+
+function cleanSearchValue(value: string | null, fallback: string) {
+  const trimmed = value?.trim()
+  return trimmed ? trimmed : fallback
+}
 
 export function SearchResultsPage() {
   const navigate = useNavigate()
@@ -18,11 +23,13 @@ export function SearchResultsPage() {
   const { actions } = useBookingStore()
 
   const params = useMemo(() => {
-    const fromCityId = sp.get('from') ?? 'sof'
-    const toCityId = sp.get('to') ?? 'pld'
-    const date = sp.get('date') ?? todayYmd()
+    const fromCityId = cleanSearchValue(sp.get('from'), 'Sofia')
+    const toCityId = cleanSearchValue(sp.get('to'), 'Plovdiv')
+    const date = cleanSearchValue(sp.get('date'), todayYmd())
     const passengers = parsePassengers(sp.get('passengers'))
-    return { fromCityId, toCityId, date, passengers }
+    const nextParams = { fromCityId, toCityId, date, passengers }
+    console.debug('[BusGo SearchResultsPage] search params', nextParams)
+    return nextParams
   }, [sp])
 
   const enabled = Boolean(params.fromCityId && params.toCityId && params.date)
@@ -37,13 +44,10 @@ export function SearchResultsPage() {
         </p>
       </div>
 
-      <SearchForm compact />
+      <SearchForm key={sp.toString()} compact />
 
       {query.isLoading ? (
-        <Card className="flex items-center gap-3 p-6">
-          <Spinner />
-          <div className="text-sm text-slate-700">Loading trips…</div>
-        </Card>
+        <RouteSearchSkeleton />
       ) : query.isError ? (
         <Card className="p-6">
           <div className="text-sm text-rose-700">
@@ -53,12 +57,7 @@ export function SearchResultsPage() {
       ) : (
         <div className="grid gap-3">
           {(query.data ?? []).length === 0 ? (
-            <Card className="p-6">
-              <div className="text-sm font-medium text-slate-950">No routes found</div>
-              <div className="mt-2 text-sm text-slate-600">
-                Try a different date or change the cities.
-              </div>
-            </Card>
+            <NoRoutesEmptyState />
           ) : (
             (query.data ?? []).map((trip) => (
               <Card key={trip.id} className="p-5">

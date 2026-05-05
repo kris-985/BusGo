@@ -11,6 +11,26 @@ import { parsePassengers } from '@/features/search-trips/model/searchParams'
 import { todayYmd } from '@/shared/lib/format'
 import heroUrl from '@/assets/hero.png'
 
+function cleanSearchValue(value: string | null, fallback: string) {
+  const trimmed = value?.trim()
+  return trimmed ? trimmed : fallback
+}
+
+function normalizeSearchValue(value: string) {
+  return value.trim().toLowerCase()
+}
+
+function resolveCitySelectValue(value: string, cities: Array<{ id: string; name: string }>) {
+  const normalized = normalizeSearchValue(value)
+  const city = cities.find(
+    (item) =>
+      normalizeSearchValue(item.id) === normalized ||
+      normalizeSearchValue(item.name) === normalized,
+  )
+
+  return city?.name ?? value.trim()
+}
+
 export function HomePage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -20,9 +40,9 @@ export function HomePage() {
 
   const initial = useMemo(() => {
     return {
-      fromCityId: searchParams.get('from') ?? 'sof',
-      toCityId: searchParams.get('to') ?? 'pld',
-      date: searchParams.get('date') ?? todayYmd(),
+      fromCityId: cleanSearchValue(searchParams.get('from'), 'Sofia'),
+      toCityId: cleanSearchValue(searchParams.get('to'), 'Plovdiv'),
+      date: cleanSearchValue(searchParams.get('date'), todayYmd()),
       passengers: parsePassengers(searchParams.get('passengers')),
     }
   }, [searchParams])
@@ -56,22 +76,29 @@ export function HomePage() {
             className="grid gap-3 md:grid-cols-12 md:items-end"
             onSubmit={(e) => {
               e.preventDefault()
+              const nextValues = {
+                ...values,
+                fromCityId: resolveCitySelectValue(values.fromCityId, cities),
+                toCityId: resolveCitySelectValue(values.toCityId, cities),
+                date: values.date.trim(),
+              }
               const params = new URLSearchParams()
-              params.set('from', values.fromCityId)
-              params.set('to', values.toCityId)
-              params.set('date', values.date)
-              params.set('passengers', String(values.passengers))
+              params.set('from', nextValues.fromCityId)
+              params.set('to', nextValues.toCityId)
+              params.set('date', nextValues.date)
+              params.set('passengers', String(nextValues.passengers))
+              console.debug('[BusGo HomePage] submit', nextValues)
               navigate(`${routes.searchResults()}?${params.toString()}`)
             }}
           >
             <div className="md:col-span-4">
               <Select
                 label="From city"
-                value={values.fromCityId}
+                value={resolveCitySelectValue(values.fromCityId, cities)}
                 onChange={(e) => setValues((v) => ({ ...v, fromCityId: e.target.value }))}
               >
                 {cities.map((c) => (
-                  <option key={c.id} value={c.id}>
+                  <option key={c.id} value={c.name}>
                     {c.name}
                   </option>
                 ))}
@@ -81,11 +108,11 @@ export function HomePage() {
             <div className="md:col-span-4">
               <Select
                 label="To city"
-                value={values.toCityId}
+                value={resolveCitySelectValue(values.toCityId, cities)}
                 onChange={(e) => setValues((v) => ({ ...v, toCityId: e.target.value }))}
               >
                 {cities.map((c) => (
-                  <option key={c.id} value={c.id}>
+                  <option key={c.id} value={c.name}>
                     {c.name}
                   </option>
                 ))}
