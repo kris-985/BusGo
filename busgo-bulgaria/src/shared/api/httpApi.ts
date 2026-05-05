@@ -68,6 +68,9 @@ export const httpApi: ApiClient = {
     list() {
       return request('/routes')
     },
+    adminList() {
+      return request('/admin/routes')
+    },
     create(input: CreateRouteInput) {
       return request('/routes', {
         method: 'POST',

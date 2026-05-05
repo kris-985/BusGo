@@ -14,7 +14,7 @@ export function useAdminRoutesQuery() {
   return useQuery({
     queryKey: adminKeys.routes(),
     queryFn: async () => {
-      const res = await apiClient.routes.list()
+      const res = await apiClient.routes.adminList()
       if (!res.ok) throwApiError(res.error)
       return res.data
     },

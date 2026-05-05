@@ -24,6 +24,18 @@ export type CreateRouteInput = {
   distanceKm?: number
 }
 
+export type AdminRouteRecord = {
+  id: string
+  fromCity: string
+  toCity: string
+  departureTime: string
+  arrivalTime: string
+  price: number
+  availableSeats: number
+  totalSeats: number
+  distanceKm?: number
+}
+
 export type CreateBookingInput = {
   tripId: string
   seatIds: string[]
@@ -80,6 +92,7 @@ export type ApiClient = {
   }
   routes: {
     list(): Promise<ApiResult<Route[]>>
+    adminList(): Promise<ApiResult<AdminRouteRecord[]>>
     create(input: CreateRouteInput): Promise<ApiResult<Trip>>
   }
   trips: {

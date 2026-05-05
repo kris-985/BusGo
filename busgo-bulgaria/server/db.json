@@ -627,6 +627,17 @@
         "bg-sof-szg-2000-8C",
         "bg-sof-szg-2000-8D"
       ]
+    },
+    {
+      "id": "bg-sofia-plovdiv-20260505-1600",
+      "fromCity": "Sofia",
+      "toCity": "Plovdiv",
+      "departureTime": "2026-05-05T19:00:00+03:00",
+      "arrivalTime": "2026-05-05T21:00:00+03:00",
+      "price": 24.9,
+      "totalSeats": 40,
+      "availableSeats": 40,
+      "occupiedSeatIds": []
     }
   ],
   "bookings": []

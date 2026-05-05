@@ -71,6 +71,10 @@ function minutesBetween(startIso, endIso) {
   return Math.round((new Date(endIso).getTime() - new Date(startIso).getTime()) / 60000)
 }
 
+function localDatePart(iso) {
+  return String(iso ?? '').slice(0, 10)
+}
+
 function routeKey(route) {
   return `${route.fromCity}-${route.toCity}`
 }
@@ -99,6 +103,11 @@ function toTrip(route) {
     price: { amount: route.price, currency },
     seatsLeft: route.availableSeats,
   }
+}
+
+function toAdminRoute(route) {
+  const { occupiedSeatIds: _occupiedSeatIds, ...record } = route
+  return record
 }
 
 function buildSeatMap(route) {
@@ -222,8 +231,8 @@ function parseCreateRouteInput(body) {
     route: {
       fromCity,
       toCity,
-      departureTime: new Date(departureMs).toISOString(),
-      arrivalTime: new Date(arrivalMs).toISOString(),
+      departureTime,
+      arrivalTime,
       price: Math.round(price * 100) / 100,
       totalSeats,
       availableSeats: totalSeats,
@@ -251,6 +260,16 @@ app.get('/routes', async (_req, res, next) => {
     await delay()
     const db = await readDb()
     res.json(uniqueRoutes(db.routes))
+  } catch (error) {
+    next(error)
+  }
+})
+
+app.get('/admin/routes', async (_req, res, next) => {
+  try {
+    await delay()
+    const db = await readDb()
+    res.json(db.routes.map(toAdminRoute))
   } catch (error) {
     next(error)
   }
@@ -286,17 +305,19 @@ app.get('/routes/search', async (req, res, next) => {
     const from = normalize(req.query.from)
     const to = normalize(req.query.to)
     const date = normalize(req.query.date)
-    const matches = db.routes.filter(
-      (route) =>
-        normalize(route.fromCity) === from &&
-        normalize(route.toCity) === to &&
-        (!date || route.departureTime.slice(0, 10) === date),
+    const directMatches = db.routes.filter(
+      (route) => normalize(route.fromCity) === from && normalize(route.toCity) === to,
     )
+    const dateMatches = date
+      ? directMatches.filter((route) => localDatePart(route.departureTime) === date)
+      : directMatches
+    const matches = dateMatches.length > 0 ? dateMatches : directMatches
     console.debug('[BusGo API] /routes/search', {
       from: req.query.from,
       to: req.query.to,
       date: req.query.date,
       matches: matches.length,
+      usedDateFallback: dateMatches.length === 0 && directMatches.length > 0,
     })
     res.json(matches.map(toTrip))
   } catch (error) {

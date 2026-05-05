@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom'
 
 import { routes } from '@/app/router/routes'
 import type { Booking, BookingStatus } from '@/entities/booking/types'
-import type { Route } from '@/entities/route/types'
 import { useSeatOccupancySummaryQuery, useAdminRoutesQuery, useCreateRouteMutation } from '@/features/admin/api/queries'
 import { useBookingsQuery } from '@/features/booking/api/mutations'
 import { useCitiesQuery } from '@/features/search-trips/api/queries'
+import type { AdminRouteRecord } from '@/shared/api/apiClient'
 import { Button } from '@/shared/components/ui/Button'
 import { Card } from '@/shared/components/ui/Card'
 import { Input } from '@/shared/components/ui/Input'
@@ -48,7 +48,13 @@ function initialRouteFormValues(): RouteFormValues {
 }
 
 function datetimeLocalToIso(value: string) {
-  return new Date(value).toISOString()
+  const date = new Date(value)
+  const offsetMinutes = -date.getTimezoneOffset()
+  const sign = offsetMinutes >= 0 ? '+' : '-'
+  const absoluteOffset = Math.abs(offsetMinutes)
+  const hours = String(Math.floor(absoluteOffset / 60)).padStart(2, '0')
+  const minutes = String(absoluteOffset % 60).padStart(2, '0')
+  return `${value}:00${sign}${hours}:${minutes}`
 }
 
 function durationLabel(minutes?: number) {
@@ -61,8 +67,14 @@ function durationLabel(minutes?: number) {
   return `${hours}h ${mins}m`
 }
 
-function routeName(route: Route) {
-  return `${route.from.name} - ${route.to.name}`
+function routeDurationLabel(route: AdminRouteRecord) {
+  return durationLabel(
+    Math.round((new Date(route.arrivalTime).getTime() - new Date(route.departureTime).getTime()) / 60000),
+  )
+}
+
+function routeName(route: AdminRouteRecord) {
+  return `${route.fromCity} - ${route.toCity}`
 }
 
 function bookingRouteName(booking: Booking) {
@@ -362,7 +374,7 @@ export function AdminDashboardPage() {
               <table className="w-full min-w-[760px] text-left text-sm">
                 <thead className="border-b border-slate-200 text-xs uppercase text-slate-500">
                   <tr>
-                    <th className="py-3 pr-4 font-medium">Route</th>
+                    <th className="py-3 pr-4 font-medium">Scheduled trip</th>
                     <th className="py-3 pr-4 font-medium">Distance</th>
                     <th className="py-3 pr-4 font-medium">Duration</th>
                     <th className="py-3 pr-4 font-medium">Trips</th>
@@ -380,12 +392,15 @@ export function AdminDashboardPage() {
                         <td className="py-3 pr-4">
                           <div className="font-medium text-slate-950">{routeName(route)}</div>
                           <div className="mt-0.5 font-mono text-xs text-slate-500">{route.id}</div>
+                          <div className="mt-1 text-xs text-slate-500">
+                            {formatDate(route.departureTime)} {formatTime(route.departureTime)}
+                          </div>
                         </td>
                         <td className="py-3 pr-4 text-slate-700">
                           {route.distanceKm ? `${route.distanceKm} km` : '-'}
                         </td>
                         <td className="py-3 pr-4 text-slate-700">
-                          {durationLabel(route.estimatedDurationMinutes)}
+                          {routeDurationLabel(route)}
                         </td>
                         <td className="py-3 pr-4 text-slate-700">{metrics?.trips ?? 0}</td>
                         <td className="py-3 pr-4 text-slate-700">{metrics?.bookings ?? 0}</td>

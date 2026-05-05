@@ -99,6 +99,21 @@ export const mockApi: ApiClient = {
       await sleep(220)
       return ok(routes)
     },
+    async adminList() {
+      await sleep(220)
+      return ok(
+        trips.map((trip) => ({
+          id: trip.id,
+          fromCity: trip.from.name,
+          toCity: trip.to.name,
+          departureTime: trip.departureTime,
+          arrivalTime: trip.arrivalTime,
+          price: trip.price.amount,
+          availableSeats: trip.seatsLeft,
+          totalSeats: 40,
+        })),
+      )
+    },
     async create() {
       await sleep(250)
       return fail('Route creation is only available with the local server API', 422)

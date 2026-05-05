@@ -7,6 +7,7 @@ import { SeatStatus, type Seat } from '@/entities/seat/types'
 import type { Trip } from '@/entities/trip/types'
 import type {
   ApiClient,
+  AdminRouteRecord,
   BookSeatsInput,
   CreateBookingInput,
   CreateRouteInput,
@@ -148,6 +149,10 @@ function resolveSearchCity(value: string) {
 
 function minutesBetween(startIso: string, endIso: string) {
   return Math.round((new Date(endIso).getTime() - new Date(startIso).getTime()) / 60000)
+}
+
+function localDatePart(iso: string) {
+  return iso.slice(0, 10)
 }
 
 function routeKey(fromCity: string, toCity: string) {
@@ -375,11 +380,11 @@ function createRouteRecord(input: CreateRouteInput): ApiResult<Trip> {
   }
 
   const record: RouteRecord = {
-    id: createRouteId({ fromCity, toCity, departureTime: new Date(departureMs).toISOString() }),
+    id: createRouteId({ fromCity, toCity, departureTime: input.departureTime }),
     fromCity,
     toCity,
-    departureTime: new Date(departureMs).toISOString(),
-    arrivalTime: new Date(arrivalMs).toISOString(),
+    departureTime: input.departureTime,
+    arrivalTime: input.arrivalTime,
     price: Math.round(price * 100) / 100,
     availableSeats: totalSeats,
     totalSeats,
@@ -424,6 +429,10 @@ export const localDbApi: ApiClient = {
       await sleep(100)
       return ok(uniqueRoutes())
     },
+    async adminList() {
+      await sleep(100)
+      return ok(clone(routeRecords) as AdminRouteRecord[])
+    },
     async create(input: CreateRouteInput) {
       await sleep(180)
       return createRouteRecord(input)
@@ -450,14 +459,14 @@ export const localDbApi: ApiClient = {
         return ok([])
       }
 
-      const filtered = routeRecords
-        .filter((record) => {
+      const directMatches = routeRecords.filter((record) => {
           return (
             normalizeSearchValue(record.fromCity) === normalizeSearchValue(fromCity.name) &&
-            normalizeSearchValue(record.toCity) === normalizeSearchValue(toCity.name) &&
-            record.departureTime.slice(0, 10) === params.date
+            normalizeSearchValue(record.toCity) === normalizeSearchValue(toCity.name)
           )
         })
+      const dateMatches = directMatches.filter((record) => localDatePart(record.departureTime) === params.date)
+      const filtered = (dateMatches.length > 0 ? dateMatches : directMatches)
         .map(recordToTrip)
 
       console.debug('[BusGo localDbApi.trips.search] results', {
