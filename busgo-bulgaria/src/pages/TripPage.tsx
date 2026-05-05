@@ -28,12 +28,12 @@ export function TripPage() {
     <div className="grid gap-6">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-100">{title}</h1>
-          <p className="mt-2 text-sm text-slate-400">Review details and proceed to checkout.</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-950">{title}</h1>
+          <p className="mt-2 text-sm text-slate-600">Review details and proceed to checkout.</p>
         </div>
         <Link
           to={routes.search()}
-          className="rounded-xl px-3 py-2 text-sm text-slate-300 hover:bg-slate-900 hover:text-slate-100"
+          className="rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 hover:text-slate-950"
         >
           Back to search
         </Link>
@@ -42,11 +42,11 @@ export function TripPage() {
       {query.isLoading ? (
         <Card className="flex items-center gap-3 p-6">
           <Spinner />
-          <div className="text-sm text-slate-300">Loading trip…</div>
+          <div className="text-sm text-slate-700">Loading trip…</div>
         </Card>
       ) : query.isError || !trip ? (
         <Card className="p-6">
-          <div className="text-sm text-rose-300">
+          <div className="text-sm text-rose-700">
             {getUserFriendlyErrorMessage(query.error, 'We could not load this trip. Please try again.')}
           </div>
         </Card>
@@ -54,33 +54,33 @@ export function TripPage() {
         <Card className="p-6">
           <div className="grid gap-6 md:grid-cols-3">
             <div className="md:col-span-2">
-              <div className="text-sm text-slate-400">Route</div>
-              <div className="mt-1 text-lg font-semibold text-slate-100">
+              <div className="text-sm text-slate-600">Route</div>
+              <div className="mt-1 text-lg font-semibold text-slate-950">
                 {trip.from.name} → {trip.to.name}
               </div>
 
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <div>
-                  <div className="text-sm text-slate-400">Departure</div>
-                  <div className="mt-1 text-sm text-slate-100">
+                  <div className="text-sm text-slate-600">Departure</div>
+                  <div className="mt-1 text-sm text-slate-950">
                     {formatDate(trip.departureTime)} • {formatTime(trip.departureTime)}
                   </div>
                 </div>
                 <div>
-                  <div className="text-sm text-slate-400">Arrival</div>
-                  <div className="mt-1 text-sm text-slate-100">
+                  <div className="text-sm text-slate-600">Arrival</div>
+                  <div className="mt-1 text-sm text-slate-950">
                     {formatDate(trip.arrivalTime)} • {formatTime(trip.arrivalTime)}
                   </div>
                 </div>
                 <div>
-                  <div className="text-sm text-slate-400">Operator</div>
-                  <div className="mt-1 text-sm text-slate-100">{trip.operator.name}</div>
+                  <div className="text-sm text-slate-600">Operator</div>
+                  <div className="mt-1 text-sm text-slate-950">{trip.operator.name}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-slate-400">Amenities</div>
-                  <div className="mt-1 flex flex-wrap gap-2 text-xs text-slate-200">
+                  <div className="text-sm text-slate-600">Amenities</div>
+                  <div className="mt-1 flex flex-wrap gap-2 text-xs text-slate-800">
                     {trip.amenities.map((a) => (
-                      <span key={a} className="rounded-full bg-slate-900 px-2 py-1">
+                      <span key={a} className="rounded-full bg-slate-100 px-2 py-1">
                         {a}
                       </span>
                     ))}
@@ -89,12 +89,12 @@ export function TripPage() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
-              <div className="text-sm text-slate-400">Price</div>
-              <div className="mt-1 text-2xl font-semibold text-slate-100">
+            <div className="rounded-lg border border-slate-200 bg-white p-4">
+              <div className="text-sm text-slate-600">Price</div>
+              <div className="mt-1 text-2xl font-semibold text-slate-950">
                 {formatMoney(trip.price)}
               </div>
-              <div className="mt-2 text-sm text-slate-400">Seats left: {trip.seatsLeft}</div>
+              <div className="mt-2 text-sm text-slate-600">Seats left: {trip.seatsLeft}</div>
               <div className="mt-4">
                 <Button
                   className="w-full"

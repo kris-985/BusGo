@@ -22,12 +22,12 @@ export function SuccessPage() {
     return (
       <div className="grid gap-6">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-100">Booking confirmed</h1>
-          <p className="mt-2 text-sm text-slate-400">Preparing your ticket.</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-950">Booking confirmed</h1>
+          <p className="mt-2 text-sm text-slate-600">Preparing your ticket.</p>
         </div>
         <Card className="flex items-center gap-3 p-6">
           <Spinner />
-          <div className="text-sm text-slate-300">Loading booking...</div>
+          <div className="text-sm text-slate-700">Loading booking...</div>
         </Card>
       </div>
     )
@@ -37,17 +37,17 @@ export function SuccessPage() {
     return (
       <div className="grid gap-6">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-100">Booking confirmed</h1>
-          <p className="mt-2 text-sm text-slate-400">We could not load this confirmation.</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-950">Booking confirmed</h1>
+          <p className="mt-2 text-sm text-slate-600">We could not load this confirmation.</p>
         </div>
         <Card className="p-6">
-          <div className="text-sm text-rose-300">
+          <div className="text-sm text-rose-700">
             {getUserFriendlyErrorMessage(query.error, 'We could not load this booking confirmation.')}
           </div>
           <div className="mt-4">
             <Link
               to={routes.myBookings()}
-              className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-800 bg-slate-950 px-4 text-sm font-medium text-slate-100 transition-colors hover:bg-slate-900 active:bg-slate-950"
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition-colors hover:bg-slate-100 active:bg-white"
             >
               View my bookings
             </Link>
@@ -69,20 +69,20 @@ export function SuccessPage() {
   return (
     <div className="grid gap-6">
       <div>
-        <div className="inline-flex rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-sm font-medium text-emerald-200">
+        <div className="inline-flex rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-sm font-medium text-emerald-700">
           Confirmed
         </div>
-        <h1 className="mt-3 text-2xl font-semibold tracking-tight text-slate-100">
+        <h1 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">
           Booking confirmation
         </h1>
-        <p className="mt-2 text-sm text-slate-400">
-          Booking ID <span className="font-mono text-slate-200">{booking.id}</span>
+        <p className="mt-2 text-sm text-slate-600">
+          Booking ID <span className="font-mono text-slate-800">{booking.id}</span>
         </p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="p-6 lg:col-span-1">
-          <div className="text-sm font-medium text-slate-100">Boarding QR</div>
+          <div className="text-sm font-medium text-slate-950">Boarding QR</div>
           <div className="mt-4 flex justify-center">
             <div className="rounded-lg bg-white p-3">
               <QRCodeSVG
@@ -94,7 +94,7 @@ export function SuccessPage() {
               />
             </div>
           </div>
-          <div className="mt-4 break-all rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 font-mono text-xs text-slate-300">
+          <div className="mt-4 break-all rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-xs text-slate-700">
             {booking.id}
           </div>
         </Card>
@@ -102,46 +102,46 @@ export function SuccessPage() {
         <Card className="p-6 lg:col-span-2">
           <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
             <div>
-              <div className="text-sm text-slate-400">Trip</div>
-              <div className="mt-1 text-xl font-semibold text-slate-100">
+              <div className="text-sm text-slate-600">Trip</div>
+              <div className="mt-1 text-xl font-semibold text-slate-950">
                 {booking.trip.from.name} - {booking.trip.to.name}
               </div>
-              <div className="mt-3 grid gap-2 text-sm text-slate-300 sm:grid-cols-2">
+              <div className="mt-3 grid gap-2 text-sm text-slate-700 sm:grid-cols-2">
                 <div>
                   <div className="text-slate-500">Date</div>
-                  <div className="mt-0.5 font-medium text-slate-100">
+                  <div className="mt-0.5 font-medium text-slate-950">
                     {formatDate(booking.trip.departureTime)}
                   </div>
                 </div>
                 <div>
                   <div className="text-slate-500">Operator</div>
-                  <div className="mt-0.5 font-medium text-slate-100">{booking.trip.operator.name}</div>
+                  <div className="mt-0.5 font-medium text-slate-950">{booking.trip.operator.name}</div>
                 </div>
                 <div>
                   <div className="text-slate-500">Departure</div>
-                  <div className="mt-0.5 font-medium text-slate-100">
+                  <div className="mt-0.5 font-medium text-slate-950">
                     {formatTime(booking.trip.departureTime)}
                   </div>
                 </div>
                 <div>
                   <div className="text-slate-500">Arrival</div>
-                  <div className="mt-0.5 font-medium text-slate-100">
+                  <div className="mt-0.5 font-medium text-slate-950">
                     {formatTime(booking.trip.arrivalTime)}
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-lg border border-slate-800 bg-slate-950 p-4 md:min-w-56">
-              <div className="text-sm text-slate-400">Total paid</div>
-              <div className="mt-1 text-2xl font-semibold text-slate-100">
+            <div className="rounded-lg border border-slate-200 bg-white p-4 md:min-w-56">
+              <div className="text-sm text-slate-600">Total paid</div>
+              <div className="mt-1 text-2xl font-semibold text-slate-950">
                 {formatMoney(booking.total)}
               </div>
-              <div className="mt-2 text-sm text-slate-400">
-                Payment: <span className="text-slate-200">{booking.paymentMethod}</span>
+              <div className="mt-2 text-sm text-slate-600">
+                Payment: <span className="text-slate-800">{booking.paymentMethod}</span>
               </div>
-              <div className="mt-1 text-sm text-slate-400">
-                Status: <span className="text-slate-200">{booking.status}</span>
+              <div className="mt-1 text-sm text-slate-600">
+                Status: <span className="text-slate-800">{booking.status}</span>
               </div>
             </div>
           </div>
@@ -151,36 +151,36 @@ export function SuccessPage() {
       <Card className="p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <div className="text-sm font-medium text-slate-100">Seats</div>
-            <div className="mt-1 text-sm text-slate-400">
+            <div className="text-sm font-medium text-slate-950">Seats</div>
+            <div className="mt-1 text-sm text-slate-600">
               {seatRows.length} {seatRows.length === 1 ? 'seat' : 'seats'} assigned
             </div>
           </div>
-          <div className="text-sm text-slate-400">
-            Contact: <span className="text-slate-200">{booking.contactEmail}</span>
+          <div className="text-sm text-slate-600">
+            Contact: <span className="text-slate-800">{booking.contactEmail}</span>
           </div>
         </div>
 
         <div className="mt-4 grid gap-2">
           {seatRows.length === 0 ? (
-            <div className="rounded-lg border border-slate-800 bg-slate-950 px-3 py-3 text-sm text-slate-300">
+            <div className="rounded-lg border border-slate-200 bg-white px-3 py-3 text-sm text-slate-700">
               No seats assigned.
             </div>
           ) : (
             seatRows.map(({ seatId, label, passenger }) => (
               <div
                 key={seatId}
-                className="grid gap-3 rounded-lg border border-slate-800 bg-slate-950 px-3 py-3 text-sm md:grid-cols-12 md:items-center"
+                className="grid gap-3 rounded-lg border border-slate-200 bg-white px-3 py-3 text-sm md:grid-cols-12 md:items-center"
               >
                 <div className="md:col-span-2">
                   <span className="inline-flex min-w-14 justify-center rounded-lg bg-sky-500/15 px-3 py-1 font-semibold text-sky-100 ring-1 ring-inset ring-sky-400/30">
                     {label}
                   </span>
                 </div>
-                <div className="text-slate-100 md:col-span-7">
+                <div className="text-slate-950 md:col-span-7">
                   {passenger ? `${passenger.firstName} ${passenger.lastName}` : 'Passenger not assigned'}
                 </div>
-                <div className="text-slate-400 md:col-span-3 md:text-right">
+                <div className="text-slate-600 md:col-span-3 md:text-right">
                   {passenger?.type ?? 'ADULT'}
                 </div>
               </div>
@@ -192,13 +192,13 @@ export function SuccessPage() {
       <div className="flex flex-wrap gap-3">
         <Link
           to={routes.searchResults()}
-          className="inline-flex h-10 items-center justify-center rounded-xl bg-slate-800 px-4 text-sm font-medium text-slate-100 transition-colors hover:bg-slate-700 active:bg-slate-800"
+          className="inline-flex h-10 items-center justify-center rounded-xl bg-slate-100 px-4 text-sm font-medium text-slate-950 transition-colors hover:bg-slate-200 active:bg-slate-100"
         >
           Book another trip
         </Link>
         <Link
           to={routes.myBookings()}
-          className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-800 bg-slate-950 px-4 text-sm font-medium text-slate-100 transition-colors hover:bg-slate-900 active:bg-slate-950"
+          className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-950 transition-colors hover:bg-slate-100 active:bg-white"
         >
           View my bookings
         </Link>

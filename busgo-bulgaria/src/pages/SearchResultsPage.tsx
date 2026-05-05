@@ -31,8 +31,8 @@ export function SearchResultsPage() {
   return (
     <div className="grid gap-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-100">Search results</h1>
-        <p className="mt-2 text-sm text-slate-400">
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-950">Search results</h1>
+        <p className="mt-2 text-sm text-slate-600">
           Pick route, date and passengers. Select a trip to choose seats.
         </p>
       </div>
@@ -42,11 +42,11 @@ export function SearchResultsPage() {
       {query.isLoading ? (
         <Card className="flex items-center gap-3 p-6">
           <Spinner />
-          <div className="text-sm text-slate-300">Loading trips…</div>
+          <div className="text-sm text-slate-700">Loading trips…</div>
         </Card>
       ) : query.isError ? (
         <Card className="p-6">
-          <div className="text-sm text-rose-300">
+          <div className="text-sm text-rose-700">
             {getUserFriendlyErrorMessage(query.error, 'We could not load trips. Please try again.')}
           </div>
         </Card>
@@ -54,8 +54,8 @@ export function SearchResultsPage() {
         <div className="grid gap-3">
           {(query.data ?? []).length === 0 ? (
             <Card className="p-6">
-              <div className="text-sm font-medium text-slate-100">No routes found</div>
-              <div className="mt-2 text-sm text-slate-400">
+              <div className="text-sm font-medium text-slate-950">No routes found</div>
+              <div className="mt-2 text-sm text-slate-600">
                 Try a different date or change the cities.
               </div>
             </Card>
@@ -64,31 +64,31 @@ export function SearchResultsPage() {
               <Card key={trip.id} className="p-5">
                 <div className="grid gap-4 md:grid-cols-12 md:items-center">
                   <div className="md:col-span-6">
-                    <div className="text-sm text-slate-400">Time</div>
+                    <div className="text-sm text-slate-600">Time</div>
                     <div className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                      <div className="text-lg font-semibold text-slate-100">
+                      <div className="text-lg font-semibold text-slate-950">
                         {formatTime(trip.departureTime)}
                       </div>
-                      <div className="text-sm text-slate-400">→</div>
-                      <div className="text-lg font-semibold text-slate-100">
+                      <div className="text-sm text-slate-600">→</div>
+                      <div className="text-lg font-semibold text-slate-950">
                         {formatTime(trip.arrivalTime)}
                       </div>
-                      <div className="text-sm text-slate-400">
+                      <div className="text-sm text-slate-600">
                         • {trip.from.name} → {trip.to.name}
                       </div>
                     </div>
                   </div>
 
                   <div className="md:col-span-3">
-                    <div className="text-sm text-slate-400">Price</div>
-                    <div className="mt-1 text-lg font-semibold text-slate-100">
+                    <div className="text-sm text-slate-600">Price</div>
+                    <div className="mt-1 text-lg font-semibold text-slate-950">
                       {formatMoney(trip.price)}
                     </div>
                   </div>
 
                   <div className="md:col-span-2">
-                    <div className="text-sm text-slate-400">Available seats</div>
-                    <div className="mt-1 text-sm font-medium text-slate-100">{trip.seatsLeft}</div>
+                    <div className="text-sm text-slate-600">Available seats</div>
+                    <div className="mt-1 text-sm font-medium text-slate-950">{trip.seatsLeft}</div>
                   </div>
 
                   <div className="md:col-span-1 md:flex md:justify-end">

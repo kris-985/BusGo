@@ -31,10 +31,10 @@ export function SearchPage() {
   return (
     <div className="grid gap-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-100">
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-950">
           Search trips
         </h1>
-        <p className="mt-2 text-sm text-slate-400">
+        <p className="mt-2 text-sm text-slate-600">
           Pick route, date and passengers. Select a trip to proceed to checkout.
         </p>
       </div>
@@ -44,11 +44,11 @@ export function SearchPage() {
       {query.isLoading ? (
         <Card className="flex items-center gap-3 p-6">
           <Spinner />
-          <div className="text-sm text-slate-300">Loading trips…</div>
+          <div className="text-sm text-slate-700">Loading trips…</div>
         </Card>
       ) : query.isError ? (
         <Card className="p-6">
-          <div className="text-sm text-rose-300">
+          <div className="text-sm text-rose-700">
             {getUserFriendlyErrorMessage(query.error, 'We could not load trips. Please try again.')}
           </div>
         </Card>

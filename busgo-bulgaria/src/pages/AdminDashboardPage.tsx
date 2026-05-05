@@ -37,9 +37,9 @@ function seatLabelFromId(seatId: string) {
 }
 
 function statusClass(status: BookingStatus) {
-  if (status === 'CONFIRMED') return 'border-emerald-400/30 bg-emerald-500/10 text-emerald-200'
-  if (status === 'PENDING') return 'border-amber-400/30 bg-amber-500/10 text-amber-200'
-  return 'border-rose-400/30 bg-rose-500/10 text-rose-200'
+  if (status === 'CONFIRMED') return 'border-emerald-400/30 bg-emerald-500/10 text-emerald-700'
+  if (status === 'PENDING') return 'border-amber-400/30 bg-amber-500/10 text-amber-800'
+  return 'border-rose-400/30 bg-rose-500/10 text-rose-700'
 }
 
 function occupancyBarClass(rate: number) {
@@ -59,8 +59,8 @@ function StatCard({
 }) {
   return (
     <Card className="p-5">
-      <div className="text-sm text-slate-400">{label}</div>
-      <div className="mt-2 text-2xl font-semibold text-slate-100">{value}</div>
+      <div className="text-sm text-slate-600">{label}</div>
+      <div className="mt-2 text-2xl font-semibold text-slate-950">{value}</div>
       <div className="mt-2 text-sm text-slate-500">{detail}</div>
     </Card>
   )
@@ -133,8 +133,8 @@ export function AdminDashboardPage() {
     <div className="grid gap-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-100">Admin dashboard</h1>
-          <p className="mt-2 text-sm text-slate-400">
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-950">Admin dashboard</h1>
+          <p className="mt-2 text-sm text-slate-600">
             Manage routes, monitor bookings, and track live seat occupancy.
           </p>
         </div>
@@ -144,11 +144,11 @@ export function AdminDashboardPage() {
       {isLoading ? (
         <Card className="flex items-center gap-3 p-6">
           <Spinner />
-          <div className="text-sm text-slate-300">Loading admin data...</div>
+          <div className="text-sm text-slate-700">Loading admin data...</div>
         </Card>
       ) : hasError ? (
         <Card className="p-6">
-          <div className="text-sm text-rose-300">
+          <div className="text-sm text-rose-700">
             {getUserFriendlyErrorMessage(dashboardError, 'We could not load admin dashboard data. Please try again.')}
           </div>
         </Card>
@@ -180,7 +180,7 @@ export function AdminDashboardPage() {
           <Card className="p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-lg font-semibold text-slate-100">Routes</h2>
+                <h2 className="text-lg font-semibold text-slate-950">Routes</h2>
                 <p className="mt-1 text-sm text-slate-500">Manage route inventory and activity.</p>
               </div>
               <Button size="sm" variant="secondary">Export routes</Button>
@@ -188,7 +188,7 @@ export function AdminDashboardPage() {
 
             <div className="mt-4 overflow-x-auto">
               <table className="w-full min-w-[760px] text-left text-sm">
-                <thead className="border-b border-slate-800 text-xs uppercase text-slate-500">
+                <thead className="border-b border-slate-200 text-xs uppercase text-slate-500">
                   <tr>
                     <th className="py-3 pr-4 font-medium">Route</th>
                     <th className="py-3 pr-4 font-medium">Distance</th>
@@ -199,25 +199,25 @@ export function AdminDashboardPage() {
                     <th className="py-3 text-right font-medium">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-900">
+                <tbody className="divide-y divide-slate-100">
                   {(routesQuery.data ?? []).map((route) => {
                     const metrics = routeMetrics.get(routeName(route))
 
                     return (
                       <tr key={route.id}>
                         <td className="py-3 pr-4">
-                          <div className="font-medium text-slate-100">{routeName(route)}</div>
+                          <div className="font-medium text-slate-950">{routeName(route)}</div>
                           <div className="mt-0.5 font-mono text-xs text-slate-500">{route.id}</div>
                         </td>
-                        <td className="py-3 pr-4 text-slate-300">
+                        <td className="py-3 pr-4 text-slate-700">
                           {route.distanceKm ? `${route.distanceKm} km` : '-'}
                         </td>
-                        <td className="py-3 pr-4 text-slate-300">
+                        <td className="py-3 pr-4 text-slate-700">
                           {durationLabel(route.estimatedDurationMinutes)}
                         </td>
-                        <td className="py-3 pr-4 text-slate-300">{metrics?.trips ?? 0}</td>
-                        <td className="py-3 pr-4 text-slate-300">{metrics?.bookings ?? 0}</td>
-                        <td className="py-3 pr-4 text-slate-300">
+                        <td className="py-3 pr-4 text-slate-700">{metrics?.trips ?? 0}</td>
+                        <td className="py-3 pr-4 text-slate-700">{metrics?.bookings ?? 0}</td>
+                        <td className="py-3 pr-4 text-slate-700">
                           {formatMoney({ amount: metrics?.revenue ?? 0, currency: 'BGN' })}
                         </td>
                         <td className="py-3 text-right">
@@ -237,13 +237,13 @@ export function AdminDashboardPage() {
           <div className="grid gap-6 xl:grid-cols-5">
             <Card className="p-5 xl:col-span-3">
               <div>
-                <h2 className="text-lg font-semibold text-slate-100">Bookings</h2>
+                <h2 className="text-lg font-semibold text-slate-950">Bookings</h2>
                 <p className="mt-1 text-sm text-slate-500">Recent bookings with seats and route details.</p>
               </div>
 
               <div className="mt-4 overflow-x-auto">
                 <table className="w-full min-w-[860px] text-left text-sm">
-                  <thead className="border-b border-slate-800 text-xs uppercase text-slate-500">
+                  <thead className="border-b border-slate-200 text-xs uppercase text-slate-500">
                     <tr>
                       <th className="py-3 pr-4 font-medium">Booking</th>
                       <th className="py-3 pr-4 font-medium">Route</th>
@@ -254,17 +254,17 @@ export function AdminDashboardPage() {
                       <th className="py-3 text-right font-medium">Ticket</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-900">
+                  <tbody className="divide-y divide-slate-100">
                     {sortedBookings.map((booking) => (
                       <tr key={booking.id}>
                         <td className="py-3 pr-4">
-                          <div className="font-mono text-xs text-slate-100">{booking.id}</div>
+                          <div className="font-mono text-xs text-slate-950">{booking.id}</div>
                           <div className="mt-1 text-xs text-slate-500">
                             {booking.passengers.length} passenger{booking.passengers.length === 1 ? '' : 's'}
                           </div>
                         </td>
-                        <td className="py-3 pr-4 text-slate-300">{bookingRouteName(booking)}</td>
-                        <td className="py-3 pr-4 text-slate-300">
+                        <td className="py-3 pr-4 text-slate-700">{bookingRouteName(booking)}</td>
+                        <td className="py-3 pr-4 text-slate-700">
                           {formatDate(booking.trip.departureTime)} {formatTime(booking.trip.departureTime)}
                         </td>
                         <td className="py-3 pr-4">
@@ -272,14 +272,14 @@ export function AdminDashboardPage() {
                             {booking.seatIds.map((seatId) => (
                               <span
                                 key={seatId}
-                                className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-0.5 text-xs font-medium text-slate-100"
+                                className="rounded-lg border border-slate-300 bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-950"
                               >
                                 {seatLabelFromId(seatId)}
                               </span>
                             ))}
                           </div>
                         </td>
-                        <td className="py-3 pr-4 text-slate-300">{formatMoney(booking.total)}</td>
+                        <td className="py-3 pr-4 text-slate-700">{formatMoney(booking.total)}</td>
                         <td className="py-3 pr-4">
                           <span className={cn('rounded-lg border px-2 py-0.5 text-xs font-medium', statusClass(booking.status))}>
                             {booking.status}
@@ -288,7 +288,7 @@ export function AdminDashboardPage() {
                         <td className="py-3 text-right">
                           <Link
                             to={routes.success(booking.id)}
-                            className="inline-flex h-9 items-center justify-center rounded-xl border border-slate-800 bg-slate-950 px-3 text-sm font-medium text-slate-100 transition-colors hover:bg-slate-900 active:bg-slate-950"
+                            className="inline-flex h-9 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-950 transition-colors hover:bg-slate-100 active:bg-white"
                           >
                             Open
                           </Link>
@@ -303,10 +303,10 @@ export function AdminDashboardPage() {
             <Card className="p-5 xl:col-span-2">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-lg font-semibold text-slate-100">Seat occupancy</h2>
+                  <h2 className="text-lg font-semibold text-slate-950">Seat occupancy</h2>
                   <p className="mt-1 text-sm text-slate-500">Live mock occupancy by active trip.</p>
                 </div>
-                <div className="inline-flex items-center gap-2 rounded-lg border border-emerald-400/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-200">
+                <div className="inline-flex items-center gap-2 rounded-lg border border-emerald-400/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-700">
                   <span className="h-2 w-2 rounded-full bg-emerald-400" />
                   Live
                 </div>
@@ -314,27 +314,27 @@ export function AdminDashboardPage() {
 
               <div className="mt-4 grid gap-4">
                 {(occupancyQuery.data ?? []).map((row) => (
-                  <div key={row.tripId} className="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                  <div key={row.tripId} className="rounded-xl border border-slate-200 bg-white p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <div className="font-medium text-slate-100">{row.route}</div>
+                        <div className="font-medium text-slate-950">{row.route}</div>
                         <div className="mt-1 text-xs text-slate-500">
                           {formatDate(row.departureTime)} {formatTime(row.departureTime)}
                         </div>
                       </div>
-                      <div className="text-right text-sm font-semibold text-slate-100">
+                      <div className="text-right text-sm font-semibold text-slate-950">
                         {row.occupancyRate}%
                       </div>
                     </div>
 
-                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-800">
+                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
                       <div
                         className={cn('h-full rounded-full transition-all', occupancyBarClass(row.occupancyRate))}
                         style={{ width: `${row.occupancyRate}%` }}
                       />
                     </div>
 
-                    <div className="mt-3 flex items-center justify-between text-sm text-slate-400">
+                    <div className="mt-3 flex items-center justify-between text-sm text-slate-600">
                       <span>{row.occupiedSeats} occupied</span>
                       <span>{row.freeSeats} free</span>
                     </div>

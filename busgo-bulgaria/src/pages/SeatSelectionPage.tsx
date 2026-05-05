@@ -70,14 +70,14 @@ export function SeatSelectionPage() {
     <div className="grid gap-6">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-100">{title}</h1>
-          <p className="mt-2 text-sm text-slate-400">
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-950">{title}</h1>
+          <p className="mt-2 text-sm text-slate-600">
             Seat selection is simplified in this demo. Continue to checkout to enter passengers.
           </p>
         </div>
         <Link
           to={routes.searchResults()}
-          className="rounded-xl px-3 py-2 text-sm text-slate-300 hover:bg-slate-900 hover:text-slate-100"
+          className="rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 hover:text-slate-950"
         >
           Back to results
         </Link>
@@ -86,11 +86,11 @@ export function SeatSelectionPage() {
       {query.isLoading ? (
         <Card className="flex items-center gap-3 p-6">
           <Spinner />
-          <div className="text-sm text-slate-300">Loading trip…</div>
+          <div className="text-sm text-slate-700">Loading trip…</div>
         </Card>
       ) : query.isError || !trip ? (
         <Card className="p-6">
-          <div className="text-sm text-rose-300">
+          <div className="text-sm text-rose-700">
             {getUserFriendlyErrorMessage(query.error, 'We could not load this trip. Please try again.')}
           </div>
         </Card>
@@ -99,34 +99,34 @@ export function SeatSelectionPage() {
           <Card className="p-6 lg:col-span-2">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <div className="text-sm text-slate-400">Route</div>
-                <div className="mt-1 text-lg font-semibold text-slate-100">
+                <div className="text-sm text-slate-600">Route</div>
+                <div className="mt-1 text-lg font-semibold text-slate-950">
                   {trip.from.name} → {trip.to.name}
                 </div>
-                <div className="mt-2 text-sm text-slate-300">
+                <div className="mt-2 text-sm text-slate-700">
                   {formatDate(trip.departureTime)} • {formatTime(trip.departureTime)}–{formatTime(trip.arrivalTime)}
                 </div>
-                <div className="mt-3 inline-flex items-center gap-2 rounded-lg border border-emerald-400/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-200">
+                <div className="mt-3 inline-flex items-center gap-2 rounded-lg border border-emerald-400/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-700">
                   <span className="h-2 w-2 rounded-full bg-emerald-400" />
                   {availabilityQuery.isFetching ? 'Syncing seats...' : 'Live seat updates'}
                 </div>
               </div>
 
               <div className="flex flex-wrap gap-3 text-sm">
-                <div className="rounded-xl border border-slate-800 bg-slate-950 px-3 py-2">
-                  <div className="text-xs text-slate-400">Selected</div>
-                  <div className="mt-0.5 font-medium text-slate-100">{derived.validSelectedSeatIds.length}</div>
+                <div className="rounded-xl border border-slate-200 bg-white px-3 py-2">
+                  <div className="text-xs text-slate-600">Selected</div>
+                  <div className="mt-0.5 font-medium text-slate-950">{derived.validSelectedSeatIds.length}</div>
                 </div>
-                <div className="rounded-xl border border-slate-800 bg-slate-950 px-3 py-2">
-                  <div className="text-xs text-slate-400">Remaining</div>
-                  <div className="mt-0.5 font-medium text-slate-100">
+                <div className="rounded-xl border border-slate-200 bg-white px-3 py-2">
+                  <div className="text-xs text-slate-600">Remaining</div>
+                  <div className="mt-0.5 font-medium text-slate-950">
                     {availabilityQuery.isLoading ? '—' : derived.remainingFreeAfterSelection}
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="mt-5 flex flex-wrap gap-3 text-xs text-slate-300">
+            <div className="mt-5 flex flex-wrap gap-3 text-xs text-slate-700">
               <div className="flex items-center gap-2">
                 <span className="h-3 w-3 rounded bg-emerald-500/80 ring-1 ring-emerald-300/40" />
                 Free
@@ -143,18 +143,18 @@ export function SeatSelectionPage() {
 
             <div className="mt-5">
               {derived.blockedSelectedSeatIds.length > 0 ? (
-                <div className="mb-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-100">
+                <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-800">
                   A selected seat was just taken and has been removed from your selection.
                 </div>
               ) : null}
 
               {availabilityQuery.isLoading ? (
-                <div className="flex items-center gap-3 rounded-2xl border border-slate-800 bg-slate-950/40 p-6">
+                <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-6">
                   <Spinner />
-                  <div className="text-sm text-slate-300">Loading seats…</div>
+                  <div className="text-sm text-slate-700">Loading seats…</div>
                 </div>
               ) : availabilityQuery.isError || !availabilityQuery.data ? (
-                <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-200">
+                <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-700">
                   {getUserFriendlyErrorMessage(
                     availabilityQuery.error,
                     'We could not load seat availability. Please try again.',
@@ -163,12 +163,12 @@ export function SeatSelectionPage() {
               ) : (
                 <div className="mx-auto max-w-xl">
                   {derived.noSeatsAvailable ? (
-                    <div className="mb-4 rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-200">
+                    <div className="mb-4 rounded-lg border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-700">
                       No seats are available for this trip. Please choose another departure.
                     </div>
                   ) : null}
 
-                  <div className="mb-3 flex items-center justify-center text-xs text-slate-400">
+                  <div className="mb-3 flex items-center justify-center text-xs text-slate-600">
                     Front of bus
                   </div>
 
@@ -182,7 +182,7 @@ export function SeatSelectionPage() {
                         'h-10 rounded-xl text-sm font-semibold transition-colors',
                         'ring-1 ring-inset',
                         isOccupied
-                          ? 'cursor-not-allowed bg-rose-500/15 text-rose-200 ring-rose-400/30'
+                          ? 'cursor-not-allowed bg-rose-500/15 text-rose-700 ring-rose-400/30'
                           : isSelected
                             ? 'bg-sky-500/20 text-sky-100 ring-sky-400/40 hover:bg-sky-500/25'
                             : 'bg-emerald-500/15 text-emerald-100 ring-emerald-400/30 hover:bg-emerald-500/20',
@@ -215,11 +215,11 @@ export function SeatSelectionPage() {
           </Card>
 
           <Card className="p-6">
-            <div className="text-sm text-slate-400">Price</div>
-            <div className="mt-1 text-2xl font-semibold text-slate-100">{formatMoney(trip.price)}</div>
-            <div className="mt-2 text-sm text-slate-400">Seats left: {trip.seatsLeft}</div>
+            <div className="text-sm text-slate-600">Price</div>
+            <div className="mt-1 text-2xl font-semibold text-slate-950">{formatMoney(trip.price)}</div>
+            <div className="mt-2 text-sm text-slate-600">Seats left: {trip.seatsLeft}</div>
             {derived.noSeatsAvailable ? (
-              <div className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-200">
+              <div className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-700">
                 This trip is fully booked.
               </div>
             ) : null}

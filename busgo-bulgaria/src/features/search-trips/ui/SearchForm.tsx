@@ -34,7 +34,7 @@ export function SearchForm({ compact }: SearchFormProps) {
 
   return (
     <form
-      className="grid gap-3 rounded-2xl border border-slate-800 bg-slate-950/40 p-4 md:grid-cols-12 md:items-end"
+      className="grid gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/80 md:grid-cols-12 md:items-end"
       onSubmit={(e) => {
         e.preventDefault()
         const params = new URLSearchParams()
@@ -45,7 +45,7 @@ export function SearchForm({ compact }: SearchFormProps) {
         navigate(`${routes.searchResults()}?${params.toString()}`)
       }}
     >
-      <div className={compact ? 'md:col-span-4' : 'md:col-span-3'}>
+      <div className={compact ? 'md:col-span-3' : 'md:col-span-3'}>
         <Select
           label="From"
           value={values.fromCityId}
@@ -58,7 +58,7 @@ export function SearchForm({ compact }: SearchFormProps) {
           ))}
         </Select>
       </div>
-      <div className={compact ? 'md:col-span-4' : 'md:col-span-3'}>
+      <div className={compact ? 'md:col-span-3' : 'md:col-span-3'}>
         <Select
           label="To"
           value={values.toCityId}
@@ -71,7 +71,7 @@ export function SearchForm({ compact }: SearchFormProps) {
           ))}
         </Select>
       </div>
-      <div className={compact ? 'md:col-span-2' : 'md:col-span-3'}>
+      <div className={compact ? 'md:col-span-2' : 'md:col-span-2'}>
         <Input
           label="Date"
           type="date"
@@ -91,10 +91,9 @@ export function SearchForm({ compact }: SearchFormProps) {
           }
         />
       </div>
-      <div className="md:col-span-1">
+      <div className="md:col-span-2">
         <Button className="w-full">Search</Button>
       </div>
     </form>
   )
 }
-

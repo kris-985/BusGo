@@ -9,6 +9,7 @@ import { Button } from '@/shared/components/ui/Button'
 import { useCitiesQuery } from '@/features/search-trips/api/queries'
 import { parsePassengers } from '@/features/search-trips/model/searchParams'
 import { todayYmd } from '@/shared/lib/format'
+import heroUrl from '@/assets/hero.png'
 
 export function HomePage() {
   const navigate = useNavigate()
@@ -30,16 +31,27 @@ export function HomePage() {
 
   return (
     <div className="grid gap-8">
-      <section className="grid gap-4">
-        <h1 className="text-3xl font-semibold tracking-tight text-slate-100 md:text-4xl">
-          Book bus tickets across Bulgaria
-        </h1>
-        <p className="max-w-2xl text-slate-300">
-          Fast search, clear prices, and a smooth checkout flow. Demo data is included so the
-          project runs end-to-end immediately.
-        </p>
+      <section
+        className="relative overflow-hidden rounded-lg bg-slate-950 px-4 pb-5 pt-16 shadow-xl shadow-slate-300/70 sm:px-6 sm:pb-6 sm:pt-20 lg:px-8 lg:pt-24"
+        style={{
+          backgroundImage: `linear-gradient(90deg, rgba(15,23,42,0.86), rgba(15,23,42,0.58), rgba(15,23,42,0.28)), url(${heroUrl})`,
+          backgroundPosition: 'center',
+          backgroundSize: 'cover',
+        }}
+      >
+        <div className="max-w-2xl">
+          <div className="inline-flex rounded-full bg-emerald-500 px-3 py-1 text-xs font-black uppercase tracking-wide text-white">
+            Bulgaria by bus
+          </div>
+          <h1 className="mt-4 text-4xl font-black tracking-tight text-white sm:text-5xl lg:text-6xl">
+            Book bus tickets across Bulgaria
+          </h1>
+          <p className="mt-4 max-w-xl text-base font-medium leading-7 text-slate-100 sm:text-lg">
+            Search routes, compare clear prices, choose seats, and finish checkout in one focused flow.
+          </p>
+        </div>
 
-        <Card className="p-5">
+        <Card className="mt-8 border-white/80 p-4 shadow-2xl shadow-slate-950/20 sm:p-5">
           <form
             className="grid gap-3 md:grid-cols-12 md:items-end"
             onSubmit={(e) => {
@@ -100,19 +112,18 @@ export function HomePage() {
 
       <section className="grid gap-3 md:grid-cols-3">
         <Card className="p-5">
-          <div className="text-sm font-medium text-slate-100">Feature-based architecture</div>
-          <div className="mt-2 text-sm text-slate-400">Clean separation: entities, features, shared.</div>
+          <div className="text-sm font-black text-slate-950">Smart route search</div>
+          <div className="mt-2 text-sm leading-6 text-slate-600">Find intercity departures with useful defaults and a fast booking path.</div>
         </Card>
         <Card className="p-5">
-          <div className="text-sm font-medium text-slate-100">Typed API layer</div>
-          <div className="mt-2 text-sm text-slate-400">Swappable client: mock today, HTTP tomorrow.</div>
+          <div className="text-sm font-black text-slate-950">Clear trip cards</div>
+          <div className="mt-2 text-sm leading-6 text-slate-600">Departure times, availability, amenities, and prices are easy to scan.</div>
         </Card>
         <Card className="p-5">
-          <div className="text-sm font-medium text-slate-100">State + data fetching</div>
-          <div className="mt-2 text-sm text-slate-400">Zustand for draft booking, React Query for server.</div>
+          <div className="text-sm font-black text-slate-950">Mobile-ready checkout</div>
+          <div className="mt-2 text-sm leading-6 text-slate-600">Larger controls and tighter summaries keep the flow usable on every screen.</div>
         </Card>
       </section>
     </div>
   )
 }
-
