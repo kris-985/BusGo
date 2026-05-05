@@ -44,6 +44,21 @@ function normalize(value) {
   return String(value ?? '').trim().toLowerCase()
 }
 
+function slug(value) {
+  return normalize(value)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+function titleCase(value) {
+  return String(value ?? '')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .replace(/\p{L}+/gu, (word) => word[0].toLocaleUpperCase() + word.slice(1))
+}
+
 function cityByName(name) {
   return {
     id: cityIdByName.get(name) ?? normalize(name).replace(/\s+/g, '-'),
@@ -58,6 +73,17 @@ function minutesBetween(startIso, endIso) {
 
 function routeKey(route) {
   return `${route.fromCity}-${route.toCity}`
+}
+
+function knownCities(routes) {
+  const cities = new Map(cityOrder.map((name) => [normalize(name), cityByName(name)]))
+  for (const route of routes) {
+    for (const name of [route.fromCity, route.toCity]) {
+      const city = cityByName(name)
+      cities.set(normalize(city.name), city)
+    }
+  }
+  return Array.from(cities.values()).sort((a, b) => a.name.localeCompare(b.name))
 }
 
 function toTrip(route) {
@@ -142,19 +168,82 @@ function uniqueRoutes(routes) {
       id: `route-${cityByName(route.fromCity).id}-${cityByName(route.toCity).id}`,
       from: cityByName(route.fromCity),
       to: cityByName(route.toCity),
-      distanceKm: distanceByRoute.get(key),
+      distanceKm: route.distanceKm ?? distanceByRoute.get(key),
       estimatedDurationMinutes: minutesBetween(route.departureTime, route.arrivalTime),
     })
   }
   return Array.from(byPair.values())
 }
 
+function createRouteId(db, route) {
+  const departure = new Date(route.departureTime)
+  const ymd = departure.toISOString().slice(0, 10).replaceAll('-', '')
+  const hm = departure.toISOString().slice(11, 16).replace(':', '')
+  const baseId = `bg-${slug(route.fromCity).slice(0, 12)}-${slug(route.toCity).slice(0, 12)}-${ymd}-${hm}`
+  let candidate = baseId
+  let suffix = 2
+
+  while (db.routes.some((item) => item.id === candidate)) {
+    candidate = `${baseId}-${suffix}`
+    suffix += 1
+  }
+
+  return candidate
+}
+
+function parseCreateRouteInput(body) {
+  const fromCity = titleCase(body.fromCity)
+  const toCity = titleCase(body.toCity)
+  const departureTime = String(body.departureTime ?? '')
+  const arrivalTime = String(body.arrivalTime ?? '')
+  const price = Number(body.price)
+  const totalSeats = Number(body.totalSeats)
+  const distanceKm = body.distanceKm === undefined || body.distanceKm === ''
+    ? undefined
+    : Number(body.distanceKm)
+  const departureMs = Date.parse(departureTime)
+  const arrivalMs = Date.parse(arrivalTime)
+
+  if (!fromCity || !toCity) return { error: 'Origin and destination are required' }
+  if (normalize(fromCity) === normalize(toCity)) return { error: 'Origin and destination must be different' }
+  if (!Number.isFinite(departureMs) || !Number.isFinite(arrivalMs)) {
+    return { error: 'Departure and arrival times are required' }
+  }
+  if (arrivalMs <= departureMs) return { error: 'Arrival must be after departure' }
+  if (!Number.isFinite(price) || price <= 0) return { error: 'Price must be greater than zero' }
+  if (!Number.isInteger(totalSeats) || totalSeats < 4 || totalSeats > 80 || totalSeats % 4 !== 0) {
+    return { error: 'Total seats must be a multiple of 4 between 4 and 80' }
+  }
+  if (distanceKm !== undefined && (!Number.isFinite(distanceKm) || distanceKm <= 0)) {
+    return { error: 'Distance must be greater than zero' }
+  }
+
+  return {
+    route: {
+      fromCity,
+      toCity,
+      departureTime: new Date(departureMs).toISOString(),
+      arrivalTime: new Date(arrivalMs).toISOString(),
+      price: Math.round(price * 100) / 100,
+      totalSeats,
+      availableSeats: totalSeats,
+      occupiedSeatIds: [],
+      ...(distanceKm === undefined ? {} : { distanceKm: Math.round(distanceKm) }),
+    },
+  }
+}
+
 app.get('/health', (_req, res) => {
   res.json({ ok: true })
 })
 
-app.get('/cities', (_req, res) => {
-  res.json(cityOrder.map(cityByName))
+app.get('/cities', async (_req, res, next) => {
+  try {
+    const db = await readDb()
+    res.json(knownCities(db.routes))
+  } catch (error) {
+    next(error)
+  }
 })
 
 app.get('/routes', async (_req, res, next) => {
@@ -167,18 +256,46 @@ app.get('/routes', async (_req, res, next) => {
   }
 })
 
+app.post('/routes', async (req, res, next) => {
+  try {
+    await delay()
+    const db = await readDb()
+    const parsed = parseCreateRouteInput(req.body)
+    if (parsed.error) {
+      sendError(res, 422, parsed.error)
+      return
+    }
+
+    const route = {
+      id: createRouteId(db, parsed.route),
+      ...parsed.route,
+    }
+
+    db.routes.push(route)
+    await writeDb(db)
+    res.status(201).json(toTrip(route))
+  } catch (error) {
+    next(error)
+  }
+})
+
 app.get('/routes/search', async (req, res, next) => {
   try {
     await delay()
     const db = await readDb()
     const from = normalize(req.query.from)
     const to = normalize(req.query.to)
+    const date = normalize(req.query.date)
     const matches = db.routes.filter(
-      (route) => normalize(route.fromCity) === from && normalize(route.toCity) === to,
+      (route) =>
+        normalize(route.fromCity) === from &&
+        normalize(route.toCity) === to &&
+        (!date || route.departureTime.slice(0, 10) === date),
     )
     console.debug('[BusGo API] /routes/search', {
       from: req.query.from,
       to: req.query.to,
+      date: req.query.date,
       matches: matches.length,
     })
     res.json(matches.map(toTrip))

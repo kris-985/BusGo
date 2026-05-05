@@ -232,14 +232,17 @@ export function CheckoutPage() {
 
   return (
     <div className="grid gap-6">
-      <div className="flex items-center justify-between gap-3">
+      <div className="rounded-[1.75rem] bg-slate-950 p-6 text-white shadow-[0_22px_55px_rgba(15,23,42,0.18)] sm:flex sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-950">Checkout</h1>
-          <p className="mt-2 text-sm text-slate-600">Review seats and complete payment.</p>
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-black uppercase text-cyan-100">
+            Secure mock checkout
+          </div>
+          <h1 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl">Checkout</h1>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">Review seats, passenger details, contact information, and payment state.</p>
         </div>
         <Link
           to={routes.trip(tripId)}
-          className="rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 hover:text-slate-950"
+          className="mt-4 inline-flex h-10 items-center rounded-full border border-white/15 bg-white/10 px-4 text-sm font-semibold text-white hover:bg-white/15 sm:mt-0"
         >
           Back
         </Link>
@@ -260,7 +263,8 @@ export function CheckoutPage() {
         <form className="grid gap-6 lg:grid-cols-3" onSubmit={handleSubmit}>
           <div className="grid gap-6 lg:col-span-2">
             <Card className="p-6">
-              <div className="text-sm font-medium text-slate-950">Passengers</div>
+              <div className="text-lg font-black text-slate-950">Passengers</div>
+              <div className="mt-1 text-sm text-slate-500">Assign each selected seat to a passenger.</div>
               <div className="mt-4 grid gap-3">
                 {passengerRows.length === 0 ? (
                   <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-700">
@@ -270,7 +274,7 @@ export function CheckoutPage() {
                   passengerRows.map(({ seatId, passenger }, idx) => (
                     <div
                       key={seatId}
-                      className="grid gap-3 rounded-lg border border-slate-200 p-4 md:grid-cols-12 md:items-end"
+                      className="grid gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-4 md:grid-cols-12 md:items-end"
                     >
                       <div className="md:col-span-12">
                         <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
@@ -324,7 +328,8 @@ export function CheckoutPage() {
             </Card>
 
             <Card className="p-6">
-              <div className="text-sm font-medium text-slate-950">Contact</div>
+              <div className="text-lg font-black text-slate-950">Contact</div>
+              <div className="mt-1 text-sm text-slate-500">Used for ticket delivery and booking lookup.</div>
               <div className="mt-4 grid gap-3 md:grid-cols-2">
                 <Input
                   label="Email"
@@ -342,7 +347,8 @@ export function CheckoutPage() {
             </Card>
 
             <Card className="p-6">
-              <div className="text-sm font-medium text-slate-950">Mock payment</div>
+              <div className="text-lg font-black text-slate-950">Mock payment</div>
+              <div className="mt-1 text-sm text-slate-500">Card validation is simulated locally for this demo.</div>
               <div className="mt-4 grid gap-3">
                 <Select
                   label="Method"
@@ -402,12 +408,14 @@ export function CheckoutPage() {
           </div>
 
           <div className="lg:col-span-1">
-            <Card className="sticky top-6 p-6">
-              <div className="text-sm text-slate-600">Trip</div>
-              <div className="mt-1 text-sm font-medium text-slate-950">
+            <Card className="sticky top-24 overflow-hidden p-0">
+              <div className="bg-slate-950 p-6 text-white">
+                <div className="text-sm text-slate-300">Trip</div>
+                <div className="mt-1 text-lg font-black">
                 {tripQuery.data.from.name} - {tripQuery.data.to.name}
+                </div>
               </div>
-              <div className="mt-4 grid gap-2 text-sm text-slate-700">
+              <div className="grid gap-2 p-6 text-sm text-slate-700">
                 <div className="flex items-center justify-between">
                   <span className="text-slate-600">Seats</span>
                   <span>{draft.selectedSeatIds.length}</span>
@@ -435,14 +443,14 @@ export function CheckoutPage() {
                 </div>
                 <div className="flex items-center justify-between border-t border-slate-200 pt-3">
                   <span className="text-slate-600">Total</span>
-                  <span className="font-semibold text-slate-950">
+                  <span className="text-xl font-black text-slate-950">
                     {total ? formatMoney(total) : '-'}
                   </span>
                 </div>
               </div>
 
               {seatAvailabilityQuery.isError ? (
-                <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-800">
+                <div className="mx-6 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-800">
                   {getUserFriendlyErrorMessage(
                     seatAvailabilityQuery.error,
                     'We could not refresh seat availability. Booking will be checked again before confirmation.',
@@ -451,24 +459,24 @@ export function CheckoutPage() {
               ) : null}
 
               {hasUnavailableSelectedSeats ? (
-                <div className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-700">
+                <div className="mx-6 mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-700">
                   Seats {seatAvailability.unavailableSeatLabels.join(', ')} are no longer available.
                 </div>
               ) : null}
 
               {submitError || createMutation.isError ? (
-                <div className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-700">
+                <div className="mx-6 mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-700">
                   {submitError ?? getUserFriendlyErrorMessage(createMutation.error, 'We could not create your booking. Please try again.')}
                 </div>
               ) : null}
 
               {!hasSelectedSeats ? (
-                <div className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-700">
+                <div className="mx-6 mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-700">
                   Select at least one seat before checkout.
                 </div>
               ) : null}
 
-              <div className="mt-5">
+              <div className="p-6 pt-5">
                 <Button
                   type="submit"
                   className="w-full"

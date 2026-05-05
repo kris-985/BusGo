@@ -56,7 +56,7 @@ export function SearchForm({ compact }: SearchFormProps) {
 
   return (
     <form
-      className="grid gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/80 md:grid-cols-12 md:items-end"
+      className="grid gap-3 rounded-2xl border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur md:grid-cols-12 md:items-end"
       onSubmit={(e) => {
         e.preventDefault()
         const nextValues = {

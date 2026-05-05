@@ -33,9 +33,9 @@ function BookingCard({ booking }: { booking: Booking }) {
   }))
 
   return (
-    <Card className="p-5">
+    <Card className="overflow-hidden p-0">
       <div className="grid gap-5 lg:grid-cols-12 lg:items-start">
-        <div className="lg:col-span-5">
+        <div className="p-5 lg:col-span-5">
           <div className="flex flex-wrap items-center gap-2">
             <div className="text-lg font-semibold text-slate-950">
               {booking.trip.from.name} - {booking.trip.to.name}
@@ -67,13 +67,13 @@ function BookingCard({ booking }: { booking: Booking }) {
           </div>
         </div>
 
-        <div className="lg:col-span-4">
+        <div className="p-5 lg:col-span-4">
           <div className="text-sm text-slate-600">Seats</div>
           <div className="mt-2 flex flex-wrap gap-2">
             {seats.map(({ id, label }) => (
               <span
                 key={id}
-                className="inline-flex min-w-12 justify-center rounded-lg bg-sky-500/15 px-3 py-1 text-sm font-semibold text-sky-100 ring-1 ring-inset ring-sky-400/30"
+                className="inline-flex min-w-12 justify-center rounded-lg bg-cyan-500/15 px-3 py-1 text-sm font-semibold text-cyan-800 ring-1 ring-inset ring-cyan-400/30"
               >
                 {label}
               </span>
@@ -91,7 +91,7 @@ function BookingCard({ booking }: { booking: Booking }) {
           </div>
         </div>
 
-        <div className="lg:col-span-3 lg:text-right">
+        <div className="border-t border-slate-100 bg-slate-50/80 p-5 lg:col-span-3 lg:border-l lg:border-t-0 lg:text-right">
           <div className="text-sm text-slate-600">Total</div>
           <div className="mt-1 text-xl font-semibold text-slate-950">
             {formatMoney(booking.total)}
@@ -102,7 +102,7 @@ function BookingCard({ booking }: { booking: Booking }) {
           <div className="mt-4">
             <Link
               to={routes.success(booking.id)}
-              className="inline-flex h-9 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-950 transition-colors hover:bg-slate-100 active:bg-white"
+              className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-950 transition-colors hover:bg-slate-100 active:bg-white"
             >
               Open ticket
             </Link>
@@ -158,16 +158,19 @@ export function MyBookingsPage() {
 
   return (
     <div className="grid gap-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div className="rounded-[1.75rem] bg-slate-950 p-6 text-white shadow-[0_22px_55px_rgba(15,23,42,0.18)] sm:flex sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-950">My bookings</h1>
-          <p className="mt-2 text-sm text-slate-600">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-black uppercase text-cyan-100">
+            Ticket wallet
+          </div>
+          <h1 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl">My bookings</h1>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
             Mock booking history with route details, assigned seats, and ticket links.
           </p>
         </div>
         <Link
           to={routes.searchResults()}
-          className="inline-flex h-10 items-center justify-center rounded-xl bg-slate-100 px-4 text-sm font-medium text-slate-950 transition-colors hover:bg-slate-200 active:bg-slate-100"
+          className="mt-4 inline-flex h-10 items-center justify-center rounded-full border border-white/15 bg-white/10 px-4 text-sm font-semibold text-white transition-colors hover:bg-white/15 sm:mt-0"
         >
           Book trip
         </Link>

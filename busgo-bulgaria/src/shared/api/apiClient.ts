@@ -14,6 +14,16 @@ export type SearchTripsParams = {
   passengers: number
 }
 
+export type CreateRouteInput = {
+  fromCity: string
+  toCity: string
+  departureTime: string
+  arrivalTime: string
+  price: number
+  totalSeats: number
+  distanceKm?: number
+}
+
 export type CreateBookingInput = {
   tripId: string
   seatIds: string[]
@@ -70,6 +80,7 @@ export type ApiClient = {
   }
   routes: {
     list(): Promise<ApiResult<Route[]>>
+    create(input: CreateRouteInput): Promise<ApiResult<Trip>>
   }
   trips: {
     search(params: SearchTripsParams): Promise<ApiResult<Trip[]>>

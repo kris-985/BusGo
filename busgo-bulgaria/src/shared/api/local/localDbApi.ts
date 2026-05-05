@@ -9,6 +9,7 @@ import type {
   ApiClient,
   BookSeatsInput,
   CreateBookingInput,
+  CreateRouteInput,
   PayInput,
   SearchTripsParams,
   SeatAvailability,
@@ -27,6 +28,7 @@ type RouteRecord = {
   price: number
   availableSeats: number
   totalSeats: number
+  distanceKm?: number
 }
 
 type PersistedSeatAvailability = {
@@ -114,6 +116,21 @@ function normalizeSearchValue(value: string) {
   return value.trim().toLowerCase()
 }
 
+function titleCase(value: string) {
+  return value
+    .trim()
+    .replace(/\s+/g, ' ')
+    .replace(/\p{L}+/gu, (word) => word[0].toLocaleUpperCase() + word.slice(1))
+}
+
+function slug(value: string) {
+  return normalizeSearchValue(value)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
 function buildCitySearchIndex(cityList: City[]) {
   const index = new Map<string, City>()
 
@@ -135,6 +152,21 @@ function minutesBetween(startIso: string, endIso: string) {
 
 function routeKey(fromCity: string, toCity: string) {
   return `${fromCity}-${toCity}`
+}
+
+function ensureCity(name: string) {
+  if (citiesByName.has(name)) return cityByName(name)
+
+  const city: City = {
+    id: cityIdByName.get(name) ?? slug(name),
+    name,
+    countryCode: 'BG',
+  }
+  citiesByName.set(name, city)
+  cities.push(city)
+  citiesBySearchValue.set(normalizeSearchValue(city.id), city)
+  citiesBySearchValue.set(normalizeSearchValue(city.name), city)
+  return city
 }
 
 function recordToTrip(record: RouteRecord): Trip {
@@ -293,12 +325,72 @@ function uniqueRoutes(): Route[] {
       id: `route-${cityByName(record.fromCity).id}-${cityByName(record.toCity).id}`,
       from: cityByName(record.fromCity),
       to: cityByName(record.toCity),
-      distanceKm: distanceByRoute.get(key),
+      distanceKm: record.distanceKm ?? distanceByRoute.get(key),
       estimatedDurationMinutes: minutesBetween(record.departureTime, record.arrivalTime),
     })
   }
 
   return Array.from(byPair.values())
+}
+
+function createRouteId(route: Pick<RouteRecord, 'fromCity' | 'toCity' | 'departureTime'>) {
+  const departure = new Date(route.departureTime)
+  const ymd = departure.toISOString().slice(0, 10).replaceAll('-', '')
+  const hm = departure.toISOString().slice(11, 16).replace(':', '')
+  const baseId = `bg-${slug(route.fromCity).slice(0, 12)}-${slug(route.toCity).slice(0, 12)}-${ymd}-${hm}`
+  let candidate = baseId
+  let suffix = 2
+
+  while (routeRecords.some((item) => item.id === candidate)) {
+    candidate = `${baseId}-${suffix}`
+    suffix += 1
+  }
+
+  return candidate
+}
+
+function createRouteRecord(input: CreateRouteInput): ApiResult<Trip> {
+  const fromCity = titleCase(input.fromCity)
+  const toCity = titleCase(input.toCity)
+  const departureMs = Date.parse(input.departureTime)
+  const arrivalMs = Date.parse(input.arrivalTime)
+  const price = Number(input.price)
+  const totalSeats = Number(input.totalSeats)
+  const distanceKm = input.distanceKm === undefined ? undefined : Number(input.distanceKm)
+
+  if (!fromCity || !toCity) return fail('Origin and destination are required', 422)
+  if (normalizeSearchValue(fromCity) === normalizeSearchValue(toCity)) {
+    return fail('Origin and destination must be different', 422)
+  }
+  if (!Number.isFinite(departureMs) || !Number.isFinite(arrivalMs)) {
+    return fail('Departure and arrival times are required', 422)
+  }
+  if (arrivalMs <= departureMs) return fail('Arrival must be after departure', 422)
+  if (!Number.isFinite(price) || price <= 0) return fail('Price must be greater than zero', 422)
+  if (!Number.isInteger(totalSeats) || totalSeats < 4 || totalSeats > 80 || totalSeats % 4 !== 0) {
+    return fail('Total seats must be a multiple of 4 between 4 and 80', 422)
+  }
+  if (distanceKm !== undefined && (!Number.isFinite(distanceKm) || distanceKm <= 0)) {
+    return fail('Distance must be greater than zero', 422)
+  }
+
+  const record: RouteRecord = {
+    id: createRouteId({ fromCity, toCity, departureTime: new Date(departureMs).toISOString() }),
+    fromCity,
+    toCity,
+    departureTime: new Date(departureMs).toISOString(),
+    arrivalTime: new Date(arrivalMs).toISOString(),
+    price: Math.round(price * 100) / 100,
+    availableSeats: totalSeats,
+    totalSeats,
+    ...(distanceKm === undefined ? {} : { distanceKm: Math.round(distanceKm) }),
+  }
+
+  ensureCity(fromCity)
+  ensureCity(toCity)
+  routeRecords.push(record)
+  seatMapsByTripId[record.id] = buildStandardSeatMap(record)
+  return ok(recordToTrip(record))
 }
 
 function seatOccupancySummary(): SeatOccupancySummary[] {
@@ -332,6 +424,10 @@ export const localDbApi: ApiClient = {
       await sleep(100)
       return ok(uniqueRoutes())
     },
+    async create(input: CreateRouteInput) {
+      await sleep(180)
+      return createRouteRecord(input)
+    },
   },
   trips: {
     async search(params: SearchTripsParams) {
@@ -358,7 +454,8 @@ export const localDbApi: ApiClient = {
         .filter((record) => {
           return (
             normalizeSearchValue(record.fromCity) === normalizeSearchValue(fromCity.name) &&
-            normalizeSearchValue(record.toCity) === normalizeSearchValue(toCity.name)
+            normalizeSearchValue(record.toCity) === normalizeSearchValue(toCity.name) &&
+            record.departureTime.slice(0, 10) === params.date
           )
         })
         .map(recordToTrip)

@@ -3,6 +3,7 @@ import type {
   ApiClient,
   BookSeatsInput,
   CreateBookingInput,
+  CreateRouteInput,
   PayInput,
   SearchTripsParams,
 } from '@/shared/api/apiClient'
@@ -67,12 +68,19 @@ export const httpApi: ApiClient = {
     list() {
       return request('/routes')
     },
+    create(input: CreateRouteInput) {
+      return request('/routes', {
+        method: 'POST',
+        body: JSON.stringify(input),
+      })
+    },
   },
   trips: {
     search(params: SearchTripsParams) {
       const searchParams = new URLSearchParams({
         from: params.fromCityId.trim(),
         to: params.toCityId.trim(),
+        date: params.date.trim(),
       })
       console.debug('[BusGo httpApi.trips.search]', Object.fromEntries(searchParams))
       return request(`/routes/search?${searchParams.toString()}`)

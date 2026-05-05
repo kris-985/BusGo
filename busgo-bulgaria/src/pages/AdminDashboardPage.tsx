@@ -1,17 +1,55 @@
-import { useMemo, useState } from 'react'
+import { type FormEvent, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { routes } from '@/app/router/routes'
 import type { Booking, BookingStatus } from '@/entities/booking/types'
 import type { Route } from '@/entities/route/types'
-import { useSeatOccupancySummaryQuery, useAdminRoutesQuery } from '@/features/admin/api/queries'
+import { useSeatOccupancySummaryQuery, useAdminRoutesQuery, useCreateRouteMutation } from '@/features/admin/api/queries'
 import { useBookingsQuery } from '@/features/booking/api/mutations'
+import { useCitiesQuery } from '@/features/search-trips/api/queries'
 import { Button } from '@/shared/components/ui/Button'
 import { Card } from '@/shared/components/ui/Card'
+import { Input } from '@/shared/components/ui/Input'
 import { Spinner } from '@/shared/components/ui/Spinner'
 import { getUserFriendlyErrorMessage } from '@/shared/api/errors'
 import { cn } from '@/shared/lib/cn'
 import { formatDate, formatMoney, formatTime } from '@/shared/lib/format'
+
+type RouteFormValues = {
+  fromCity: string
+  toCity: string
+  departureTime: string
+  arrivalTime: string
+  price: string
+  totalSeats: string
+  distanceKm: string
+}
+
+function toDatetimeLocalValue(date: Date) {
+  const offsetMs = date.getTimezoneOffset() * 60000
+  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16)
+}
+
+function initialRouteFormValues(): RouteFormValues {
+  const departure = new Date()
+  departure.setHours(departure.getHours() + 2, 0, 0, 0)
+  const arrival = new Date(departure)
+  arrival.setHours(arrival.getHours() + 2)
+
+  return {
+    fromCity: 'Sofia',
+    toCity: 'Plovdiv',
+    departureTime: toDatetimeLocalValue(departure),
+    arrivalTime: toDatetimeLocalValue(arrival),
+    price: '24.90',
+    totalSeats: '40',
+    distanceKm: '',
+  }
+}
+
+function datetimeLocalToIso(value: string) {
+  return new Date(value).toISOString()
+}
 
 function durationLabel(minutes?: number) {
   if (!minutes) return '-'
@@ -70,6 +108,10 @@ export function AdminDashboardPage() {
   const routesQuery = useAdminRoutesQuery()
   const bookingsQuery = useBookingsQuery()
   const occupancyQuery = useSeatOccupancySummaryQuery()
+  const citiesQuery = useCitiesQuery()
+  const createRouteMutation = useCreateRouteMutation()
+  const [routeFormValues, setRouteFormValues] = useState<RouteFormValues>(() => initialRouteFormValues())
+  const [createdRouteId, setCreatedRouteId] = useState<string | null>(null)
   const [now] = useState(() => Date.now())
 
   const stats = useMemo(() => {
@@ -128,18 +170,148 @@ export function AdminDashboardPage() {
   const isLoading = routesQuery.isLoading || bookingsQuery.isLoading || occupancyQuery.isLoading
   const hasError = routesQuery.isError || bookingsQuery.isError || occupancyQuery.isError
   const dashboardError = routesQuery.error ?? bookingsQuery.error ?? occupancyQuery.error
+  const cities = citiesQuery.data ?? []
+
+  function updateRouteFormValue(name: keyof RouteFormValues, value: string) {
+    setCreatedRouteId(null)
+    setRouteFormValues((current) => ({ ...current, [name]: value }))
+  }
+
+  async function handleCreateRoute(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    try {
+      const createdRoute = await createRouteMutation.mutateAsync({
+        fromCity: routeFormValues.fromCity,
+        toCity: routeFormValues.toCity,
+        departureTime: datetimeLocalToIso(routeFormValues.departureTime),
+        arrivalTime: datetimeLocalToIso(routeFormValues.arrivalTime),
+        price: Number(routeFormValues.price),
+        totalSeats: Number(routeFormValues.totalSeats),
+        distanceKm: routeFormValues.distanceKm.trim() ? Number(routeFormValues.distanceKm) : undefined,
+      })
+
+      setCreatedRouteId(createdRoute.id)
+      setRouteFormValues(initialRouteFormValues())
+    } catch {
+      setCreatedRouteId(null)
+    }
+  }
 
   return (
     <div className="grid gap-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div className="rounded-[1.75rem] bg-slate-950 p-6 text-white shadow-[0_22px_55px_rgba(15,23,42,0.18)] sm:flex sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-950">Admin dashboard</h1>
-          <p className="mt-2 text-sm text-slate-600">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-black uppercase text-cyan-100">
+            Operator workspace
+          </div>
+          <h1 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl">Admin dashboard</h1>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
             Manage routes, monitor bookings, and track live seat occupancy.
           </p>
         </div>
-        <Button variant="secondary">Add route</Button>
+        <Button className="mt-4 sm:mt-0" variant="secondary" onClick={() => document.getElementById('new-route-form')?.scrollIntoView({ behavior: 'smooth' })}>
+          Add route
+        </Button>
       </div>
+
+      <Card id="new-route-form" className="p-6">
+        <div>
+          <h2 className="text-xl font-black text-slate-950">New route</h2>
+          <p className="mt-1 text-sm text-slate-500">Create a scheduled trip and add its seats to inventory.</p>
+        </div>
+
+        <form className="mt-4 grid gap-4 lg:grid-cols-12 lg:items-end" onSubmit={handleCreateRoute}>
+          <div className="lg:col-span-2">
+            <Input
+              label="From"
+              list="admin-route-cities"
+              value={routeFormValues.fromCity}
+              onChange={(event) => updateRouteFormValue('fromCity', event.target.value)}
+              required
+            />
+          </div>
+          <div className="lg:col-span-2">
+            <Input
+              label="To"
+              list="admin-route-cities"
+              value={routeFormValues.toCity}
+              onChange={(event) => updateRouteFormValue('toCity', event.target.value)}
+              required
+            />
+          </div>
+          <datalist id="admin-route-cities">
+            {cities.map((city) => (
+              <option key={city.id} value={city.name} />
+            ))}
+          </datalist>
+          <div className="lg:col-span-2">
+            <Input
+              label="Departure"
+              type="datetime-local"
+              value={routeFormValues.departureTime}
+              onChange={(event) => updateRouteFormValue('departureTime', event.target.value)}
+              required
+            />
+          </div>
+          <div className="lg:col-span-2">
+            <Input
+              label="Arrival"
+              type="datetime-local"
+              value={routeFormValues.arrivalTime}
+              onChange={(event) => updateRouteFormValue('arrivalTime', event.target.value)}
+              required
+            />
+          </div>
+          <div className="lg:col-span-1">
+            <Input
+              label="Price"
+              type="number"
+              min="0.01"
+              step="0.01"
+              value={routeFormValues.price}
+              onChange={(event) => updateRouteFormValue('price', event.target.value)}
+              required
+            />
+          </div>
+          <div className="lg:col-span-1">
+            <Input
+              label="Seats"
+              type="number"
+              min="4"
+              max="80"
+              step="4"
+              value={routeFormValues.totalSeats}
+              onChange={(event) => updateRouteFormValue('totalSeats', event.target.value)}
+              required
+            />
+          </div>
+          <div className="lg:col-span-1">
+            <Input
+              label="Km"
+              type="number"
+              min="1"
+              step="1"
+              value={routeFormValues.distanceKm}
+              onChange={(event) => updateRouteFormValue('distanceKm', event.target.value)}
+            />
+          </div>
+          <div className="lg:col-span-1">
+            <Button className="w-full" disabled={createRouteMutation.isPending} type="submit">
+              {createRouteMutation.isPending ? 'Saving' : 'Save'}
+            </Button>
+          </div>
+        </form>
+
+        {createRouteMutation.isError ? (
+          <div className="mt-3 text-sm text-rose-700">
+            {getUserFriendlyErrorMessage(createRouteMutation.error, 'Route could not be created. Please check the form.')}
+          </div>
+        ) : createdRouteId ? (
+          <div className="mt-3 text-sm font-medium text-emerald-700">
+            Route created: <span className="font-mono">{createdRouteId}</span>
+          </div>
+        ) : null}
+      </Card>
 
       {isLoading ? (
         <Card className="flex items-center gap-3 p-6">
@@ -177,7 +349,7 @@ export function AdminDashboardPage() {
             />
           </div>
 
-          <Card className="p-5">
+          <Card className="p-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h2 className="text-lg font-semibold text-slate-950">Routes</h2>

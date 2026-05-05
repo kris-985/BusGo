@@ -68,15 +68,15 @@ export function SuccessPage() {
 
   return (
     <div className="grid gap-6">
-      <div>
-        <div className="inline-flex rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-sm font-medium text-emerald-700">
+      <div className="rounded-[1.75rem] bg-slate-950 p-6 text-white shadow-[0_22px_55px_rgba(15,23,42,0.18)]">
+        <div className="inline-flex rounded-full border border-emerald-300/30 bg-emerald-300/10 px-3 py-1 text-sm font-bold text-emerald-100">
           Confirmed
         </div>
-        <h1 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">
+        <h1 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl">
           Booking confirmation
         </h1>
-        <p className="mt-2 text-sm text-slate-600">
-          Booking ID <span className="font-mono text-slate-800">{booking.id}</span>
+        <p className="mt-2 text-sm text-slate-300">
+          Booking ID <span className="font-mono text-white">{booking.id}</span>
         </p>
       </div>
 
@@ -173,7 +173,7 @@ export function SuccessPage() {
                 className="grid gap-3 rounded-lg border border-slate-200 bg-white px-3 py-3 text-sm md:grid-cols-12 md:items-center"
               >
                 <div className="md:col-span-2">
-                  <span className="inline-flex min-w-14 justify-center rounded-lg bg-sky-500/15 px-3 py-1 font-semibold text-sky-100 ring-1 ring-inset ring-sky-400/30">
+                  <span className="inline-flex min-w-14 justify-center rounded-lg bg-cyan-500/15 px-3 py-1 font-semibold text-cyan-800 ring-1 ring-inset ring-cyan-400/30">
                     {label}
                   </span>
                 </div>

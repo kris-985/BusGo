@@ -1,7 +1,7 @@
 import type { Money } from '@/shared/types/common'
 
 export function formatMoney(m: Money) {
-  const currency = m.currency === 'BGN' ? 'лв.' : m.currency
+  const currency = m.currency === 'BGN' ? 'BGN' : m.currency
   return `${m.amount.toFixed(2)} ${currency}`
 }
 
@@ -29,4 +29,3 @@ export function todayYmd() {
   const dd = String(d.getDate()).padStart(2, '0')
   return `${yyyy}-${mm}-${dd}`
 }
-

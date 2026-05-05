@@ -2,12 +2,12 @@ import { useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { routes } from '@/app/router/routes'
-import { Card } from '@/shared/components/ui/Card'
-import { Select } from '@/shared/components/ui/Select'
-import { Input } from '@/shared/components/ui/Input'
-import { Button } from '@/shared/components/ui/Button'
 import { useCitiesQuery } from '@/features/search-trips/api/queries'
 import { parsePassengers } from '@/features/search-trips/model/searchParams'
+import { Button } from '@/shared/components/ui/Button'
+import { Card } from '@/shared/components/ui/Card'
+import { Input } from '@/shared/components/ui/Input'
+import { Select } from '@/shared/components/ui/Select'
 import { todayYmd } from '@/shared/lib/format'
 import heroUrl from '@/assets/hero.png'
 
@@ -35,7 +35,6 @@ export function HomePage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const citiesQuery = useCitiesQuery()
-
   const cities = citiesQuery.data ?? []
 
   const initial = useMemo(() => {
@@ -52,26 +51,42 @@ export function HomePage() {
   return (
     <div className="grid gap-8">
       <section
-        className="relative overflow-hidden rounded-lg bg-slate-950 px-4 pb-5 pt-16 shadow-xl shadow-slate-300/70 sm:px-6 sm:pb-6 sm:pt-20 lg:px-8 lg:pt-24"
+        className="surface-grid relative overflow-hidden rounded-[2rem] bg-slate-950 px-5 pb-5 pt-20 shadow-[0_28px_70px_rgba(15,23,42,0.25)] sm:px-8 sm:pb-8 lg:min-h-[620px] lg:px-10 lg:pt-24"
         style={{
-          backgroundImage: `linear-gradient(90deg, rgba(15,23,42,0.86), rgba(15,23,42,0.58), rgba(15,23,42,0.28)), url(${heroUrl})`,
+          backgroundImage: `linear-gradient(90deg, rgba(2,6,23,0.9), rgba(15,23,42,0.72), rgba(15,23,42,0.18)), url(${heroUrl})`,
           backgroundPosition: 'center',
           backgroundSize: 'cover',
         }}
       >
-        <div className="max-w-2xl">
-          <div className="inline-flex rounded-full bg-emerald-500 px-3 py-1 text-xs font-black uppercase tracking-wide text-white">
-            Bulgaria by bus
+        <div className="max-w-3xl">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-black uppercase text-cyan-100 backdrop-blur">
+            <span className="h-2 w-2 rounded-full bg-cyan-300" />
+            Live Bulgarian departures
           </div>
-          <h1 className="mt-4 text-4xl font-black tracking-tight text-white sm:text-5xl lg:text-6xl">
-            Book bus tickets across Bulgaria
+          <h1 className="mt-5 max-w-3xl text-5xl font-black tracking-tight text-white text-balance sm:text-6xl lg:text-7xl">
+            BusGo Bulgaria
           </h1>
-          <p className="mt-4 max-w-xl text-base font-medium leading-7 text-slate-100 sm:text-lg">
-            Search routes, compare clear prices, choose seats, and finish checkout in one focused flow.
+          <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-slate-100 sm:text-lg">
+            Compare routes, see live seats, book passengers, and hand operators a clear admin view for every trip.
           </p>
+
+          <div className="mt-8 grid gap-3 text-white sm:grid-cols-3">
+            <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur">
+              <div className="text-3xl font-black">20+</div>
+              <div className="mt-1 text-sm text-slate-200">daily demo departures</div>
+            </div>
+            <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur">
+              <div className="text-3xl font-black">40</div>
+              <div className="mt-1 text-sm text-slate-200">seat maps per coach</div>
+            </div>
+            <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur">
+              <div className="text-3xl font-black">Live</div>
+              <div className="mt-1 text-sm text-slate-200">occupancy and booking state</div>
+            </div>
+          </div>
         </div>
 
-        <Card className="mt-8 border-white/80 p-4 shadow-2xl shadow-slate-950/20 sm:p-5">
+        <Card className="mt-10 border-white/80 p-4 sm:p-5">
           <form
             className="grid gap-3 md:grid-cols-12 md:items-end"
             onSubmit={(e) => {
@@ -87,11 +102,10 @@ export function HomePage() {
               params.set('to', nextValues.toCityId)
               params.set('date', nextValues.date)
               params.set('passengers', String(nextValues.passengers))
-              console.debug('[BusGo HomePage] submit', nextValues)
               navigate(`${routes.searchResults()}?${params.toString()}`)
             }}
           >
-            <div className="md:col-span-4">
+            <div className="md:col-span-3">
               <Select
                 label="From city"
                 value={resolveCitySelectValue(values.fromCityId, cities)}
@@ -104,8 +118,7 @@ export function HomePage() {
                 ))}
               </Select>
             </div>
-
-            <div className="md:col-span-4">
+            <div className="md:col-span-3">
               <Select
                 label="To city"
                 value={resolveCitySelectValue(values.toCityId, cities)}
@@ -118,8 +131,7 @@ export function HomePage() {
                 ))}
               </Select>
             </div>
-
-            <div className="md:col-span-3">
+            <div className="md:col-span-2">
               <Input
                 label="Date"
                 type="date"
@@ -127,29 +139,36 @@ export function HomePage() {
                 onChange={(e) => setValues((v) => ({ ...v, date: e.target.value }))}
               />
             </div>
-
-            <div className="md:col-span-1">
-              <Button className="w-full" type="submit" disabled={citiesQuery.isLoading}>
-                Search
+            <div className="md:col-span-2">
+              <Input
+                label="Passengers"
+                type="number"
+                min={1}
+                max={9}
+                value={values.passengers}
+                onChange={(e) => setValues((v) => ({ ...v, passengers: parsePassengers(e.target.value) }))}
+              />
+            </div>
+            <div className="md:col-span-2">
+              <Button className="h-12 w-full" type="submit" disabled={citiesQuery.isLoading}>
+                Search trips
               </Button>
             </div>
           </form>
         </Card>
       </section>
 
-      <section className="grid gap-3 md:grid-cols-3">
-        <Card className="p-5">
-          <div className="text-sm font-black text-slate-950">Smart route search</div>
-          <div className="mt-2 text-sm leading-6 text-slate-600">Find intercity departures with useful defaults and a fast booking path.</div>
-        </Card>
-        <Card className="p-5">
-          <div className="text-sm font-black text-slate-950">Clear trip cards</div>
-          <div className="mt-2 text-sm leading-6 text-slate-600">Departure times, availability, amenities, and prices are easy to scan.</div>
-        </Card>
-        <Card className="p-5">
-          <div className="text-sm font-black text-slate-950">Mobile-ready checkout</div>
-          <div className="mt-2 text-sm leading-6 text-slate-600">Larger controls and tighter summaries keep the flow usable on every screen.</div>
-        </Card>
+      <section className="grid gap-4 md:grid-cols-3">
+        {[
+          ['Passenger booking', 'Search by city and date, choose a departure, pick seats, and confirm passenger details.'],
+          ['Operator dashboard', 'Monitor route inventory, bookings, revenue, and live seat occupancy from one dense admin view.'],
+          ['Persistent routes', 'Create new scheduled routes from the admin panel and store them in the local server database.'],
+        ].map(([title, detail]) => (
+          <Card key={title} className="p-6">
+            <div className="text-sm font-black uppercase tracking-wide text-cyan-700">{title}</div>
+            <div className="mt-3 text-sm leading-6 text-slate-600">{detail}</div>
+          </Card>
+        ))}
       </section>
     </div>
   )

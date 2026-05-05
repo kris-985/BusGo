@@ -12,11 +12,11 @@ export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variantClass: Record<ButtonVariant, string> = {
   primary:
-    'bg-emerald-600 text-white shadow-sm shadow-emerald-900/20 hover:bg-emerald-500 active:bg-emerald-700 disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none',
+    'bg-slate-950 text-white shadow-[0_12px_28px_rgba(15,23,42,0.22)] hover:bg-slate-800 active:bg-slate-950 disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none',
   secondary:
-    'border border-blue-200 bg-blue-50 text-blue-700 hover:border-blue-300 hover:bg-blue-100 active:bg-blue-50 disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-600',
+    'border border-cyan-200 bg-cyan-50 text-cyan-800 hover:border-cyan-300 hover:bg-cyan-100 active:bg-cyan-50 disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-600',
   ghost:
-    'bg-transparent text-slate-700 hover:bg-slate-100 hover:text-slate-950 active:bg-slate-200 disabled:text-slate-600',
+    'bg-transparent text-slate-700 hover:bg-white/80 hover:text-slate-950 active:bg-white disabled:text-slate-600',
   danger:
     'bg-rose-600 text-white shadow-sm shadow-rose-900/15 hover:bg-rose-500 active:bg-rose-700 disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none',
 }

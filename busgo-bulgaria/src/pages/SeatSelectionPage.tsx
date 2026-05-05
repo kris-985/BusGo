@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+﻿import { useEffect, useMemo } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { routes } from '@/app/router/routes'
@@ -28,7 +28,7 @@ export function SeatSelectionPage() {
 
   const title = useMemo(() => {
     if (!trip) return 'Seat selection'
-    return `${trip.from.name} → ${trip.to.name}`
+    return `${trip.from.name} to ${trip.to.name}`
   }, [trip])
 
   const derived = useMemo(() => {
@@ -68,16 +68,20 @@ export function SeatSelectionPage() {
 
   return (
     <div className="grid gap-6">
-      <div className="flex items-center justify-between gap-3">
+      <div className="rounded-[1.75rem] bg-slate-950 p-6 text-white shadow-[0_22px_55px_rgba(15,23,42,0.18)]">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-950">{title}</h1>
-          <p className="mt-2 text-sm text-slate-600">
-            Seat selection is simplified in this demo. Continue to checkout to enter passengers.
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-black uppercase text-cyan-100">
+            <span className="h-2 w-2 rounded-full bg-cyan-300" />
+            Live seat map
+          </div>
+          <h1 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl">{title}</h1>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
+            Choose seats from the synchronized coach map, then continue to passenger details and payment.
           </p>
         </div>
         <Link
           to={routes.searchResults()}
-          className="rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 hover:text-slate-950"
+          className="mt-4 inline-flex h-10 items-center rounded-full border border-white/15 bg-white/10 px-4 text-sm font-semibold text-white hover:bg-white/15"
         >
           Back to results
         </Link>
@@ -86,7 +90,7 @@ export function SeatSelectionPage() {
       {query.isLoading ? (
         <Card className="flex items-center gap-3 p-6">
           <Spinner />
-          <div className="text-sm text-slate-700">Loading trip…</div>
+          <div className="text-sm text-slate-700">Loading trip...</div>
         </Card>
       ) : query.isError || !trip ? (
         <Card className="p-6">
@@ -96,37 +100,39 @@ export function SeatSelectionPage() {
         </Card>
       ) : (
         <div className="grid gap-6 lg:grid-cols-3">
-          <Card className="p-6 lg:col-span-2">
+          <Card className="overflow-hidden p-0 lg:col-span-2">
+            <div className="border-b border-slate-100 bg-slate-50/80 p-6">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <div className="text-sm text-slate-600">Route</div>
-                <div className="mt-1 text-lg font-semibold text-slate-950">
-                  {trip.from.name} → {trip.to.name}
+                <div className="text-sm font-semibold text-slate-500">Route</div>
+                <div className="mt-1 text-2xl font-black text-slate-950">
+                  {trip.from.name} to {trip.to.name}
                 </div>
                 <div className="mt-2 text-sm text-slate-700">
-                  {formatDate(trip.departureTime)} • {formatTime(trip.departureTime)}–{formatTime(trip.arrivalTime)}
+                  {formatDate(trip.departureTime)} - {formatTime(trip.departureTime)} to {formatTime(trip.arrivalTime)}
                 </div>
-                <div className="mt-3 inline-flex items-center gap-2 rounded-lg border border-emerald-400/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-700">
-                  <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-500/10 px-3 py-1 text-xs font-bold text-cyan-800">
+                  <span className="h-2 w-2 rounded-full bg-cyan-500" />
                   {availabilityQuery.isFetching ? 'Syncing seats...' : 'Live seat updates'}
                 </div>
               </div>
 
               <div className="flex flex-wrap gap-3 text-sm">
-                <div className="rounded-xl border border-slate-200 bg-white px-3 py-2">
+                <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
                   <div className="text-xs text-slate-600">Selected</div>
-                  <div className="mt-0.5 font-medium text-slate-950">{derived.validSelectedSeatIds.length}</div>
+                  <div className="mt-0.5 text-xl font-black text-slate-950">{derived.validSelectedSeatIds.length}</div>
                 </div>
-                <div className="rounded-xl border border-slate-200 bg-white px-3 py-2">
+                <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
                   <div className="text-xs text-slate-600">Remaining</div>
-                  <div className="mt-0.5 font-medium text-slate-950">
-                    {availabilityQuery.isLoading ? '—' : derived.remainingFreeAfterSelection}
+                  <div className="mt-0.5 text-xl font-black text-slate-950">
+                    {availabilityQuery.isLoading ? '-' : derived.remainingFreeAfterSelection}
                   </div>
                 </div>
               </div>
             </div>
+            </div>
 
-            <div className="mt-5 flex flex-wrap gap-3 text-xs text-slate-700">
+            <div className="px-6 pt-5 flex flex-wrap gap-3 text-xs text-slate-700">
               <div className="flex items-center gap-2">
                 <span className="h-3 w-3 rounded bg-emerald-500/80 ring-1 ring-emerald-300/40" />
                 Free
@@ -141,7 +147,7 @@ export function SeatSelectionPage() {
               </div>
             </div>
 
-            <div className="mt-5">
+            <div className="p-6 pt-5">
               {derived.blockedSelectedSeatIds.length > 0 ? (
                 <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-800">
                   A selected seat was just taken and has been removed from your selection.
@@ -151,7 +157,7 @@ export function SeatSelectionPage() {
               {availabilityQuery.isLoading ? (
                 <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-6">
                   <Spinner />
-                  <div className="text-sm text-slate-700">Loading seats…</div>
+                  <div className="text-sm text-slate-700">Loading seats...</div>
                 </div>
               ) : availabilityQuery.isError || !availabilityQuery.data ? (
                 <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-700">
@@ -161,14 +167,14 @@ export function SeatSelectionPage() {
                   )}
                 </div>
               ) : (
-                <div className="mx-auto max-w-xl">
+                <div className="mx-auto max-w-xl rounded-[1.5rem] border border-slate-200 bg-slate-950 p-5 text-white shadow-inner">
                   {derived.noSeatsAvailable ? (
                     <div className="mb-4 rounded-lg border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-700">
                       No seats are available for this trip. Please choose another departure.
                     </div>
                   ) : null}
 
-                  <div className="mb-3 flex items-center justify-center text-xs text-slate-600">
+                  <div className="mb-3 flex items-center justify-center text-xs font-semibold uppercase tracking-wide text-slate-300">
                     Front of bus
                   </div>
 
@@ -179,13 +185,13 @@ export function SeatSelectionPage() {
                       const canToggle = !isOccupied
 
                       const seatClass = cn(
-                        'h-10 rounded-xl text-sm font-semibold transition-colors',
+                        'h-11 rounded-xl text-sm font-black transition-colors',
                         'ring-1 ring-inset',
                         isOccupied
-                          ? 'cursor-not-allowed bg-rose-500/15 text-rose-700 ring-rose-400/30'
+                          ? 'cursor-not-allowed bg-rose-500/20 text-rose-100 ring-rose-400/30'
                           : isSelected
-                            ? 'bg-sky-500/20 text-sky-100 ring-sky-400/40 hover:bg-sky-500/25'
-                            : 'bg-emerald-500/15 text-emerald-100 ring-emerald-400/30 hover:bg-emerald-500/20',
+                            ? 'bg-cyan-400 text-slate-950 ring-cyan-200 hover:bg-cyan-300'
+                            : 'bg-emerald-400/15 text-emerald-100 ring-emerald-300/30 hover:bg-emerald-400/25',
                       )
 
                       return (
@@ -206,7 +212,7 @@ export function SeatSelectionPage() {
                     })}
                   </div>
 
-                  <div className="mt-3 flex items-center justify-center text-xs text-slate-500">
+                  <div className="mt-3 flex items-center justify-center text-xs font-semibold uppercase tracking-wide text-slate-400">
                     Rear of bus
                   </div>
                 </div>
@@ -215,8 +221,8 @@ export function SeatSelectionPage() {
           </Card>
 
           <Card className="p-6">
-            <div className="text-sm text-slate-600">Price</div>
-            <div className="mt-1 text-2xl font-semibold text-slate-950">{formatMoney(trip.price)}</div>
+            <div className="text-sm font-semibold text-slate-500">Price per seat</div>
+            <div className="mt-1 text-3xl font-black text-slate-950">{formatMoney(trip.price)}</div>
             <div className="mt-2 text-sm text-slate-600">Seats left: {trip.seatsLeft}</div>
             {derived.noSeatsAvailable ? (
               <div className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-700">
@@ -256,3 +262,4 @@ export function SeatSelectionPage() {
     </div>
   )
 }
+

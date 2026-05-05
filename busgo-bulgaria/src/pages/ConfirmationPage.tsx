@@ -1,4 +1,4 @@
-import { Link, useParams } from 'react-router-dom'
+﻿import { Link, useParams } from 'react-router-dom'
 
 import { routes } from '@/app/router/routes'
 import { useBookingByIdQuery } from '@/features/booking/api/mutations'
@@ -22,7 +22,7 @@ export function ConfirmationPage() {
       {query.isLoading ? (
         <Card className="flex items-center gap-3 p-6">
           <Spinner />
-          <div className="text-sm text-slate-700">Loading booking…</div>
+          <div className="text-sm text-slate-700">Loading booking...</div>
         </Card>
       ) : query.isError || !query.data ? (
         <Card className="p-6">
@@ -39,10 +39,10 @@ export function ConfirmationPage() {
 
               <div className="mt-4 text-sm text-slate-600">Trip</div>
               <div className="mt-1 text-lg font-semibold text-slate-950">
-                {query.data.trip.from.name} → {query.data.trip.to.name}
+                {query.data.trip.from.name} to {query.data.trip.to.name}
               </div>
               <div className="mt-2 text-sm text-slate-700">
-                {formatDate(query.data.trip.departureTime)} • {formatTime(query.data.trip.departureTime)}–{formatTime(query.data.trip.arrivalTime)}
+                {formatDate(query.data.trip.departureTime)} - {formatTime(query.data.trip.departureTime)}-{formatTime(query.data.trip.arrivalTime)}
               </div>
 
               <div className="mt-4 text-sm text-slate-600">Passengers</div>
@@ -85,3 +85,4 @@ export function ConfirmationPage() {
     </div>
   )
 }
+

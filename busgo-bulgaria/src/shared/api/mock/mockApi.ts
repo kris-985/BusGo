@@ -99,6 +99,10 @@ export const mockApi: ApiClient = {
       await sleep(220)
       return ok(routes)
     },
+    async create() {
+      await sleep(250)
+      return fail('Route creation is only available with the local server API', 422)
+    },
   },
   trips: {
     async search(params: SearchTripsParams) {

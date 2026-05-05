@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+﻿import { useMemo } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { routes } from '@/app/router/routes'
@@ -21,7 +21,7 @@ export function TripPage() {
 
   const title = useMemo(() => {
     if (!trip) return 'Trip'
-    return `${trip.from.name} → ${trip.to.name}`
+    return `${trip.from.name} to ${trip.to.name}`
   }, [trip])
 
   return (
@@ -42,7 +42,7 @@ export function TripPage() {
       {query.isLoading ? (
         <Card className="flex items-center gap-3 p-6">
           <Spinner />
-          <div className="text-sm text-slate-700">Loading trip…</div>
+          <div className="text-sm text-slate-700">Loading trip...</div>
         </Card>
       ) : query.isError || !trip ? (
         <Card className="p-6">
@@ -56,20 +56,20 @@ export function TripPage() {
             <div className="md:col-span-2">
               <div className="text-sm text-slate-600">Route</div>
               <div className="mt-1 text-lg font-semibold text-slate-950">
-                {trip.from.name} → {trip.to.name}
+                {trip.from.name} to {trip.to.name}
               </div>
 
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <div>
                   <div className="text-sm text-slate-600">Departure</div>
                   <div className="mt-1 text-sm text-slate-950">
-                    {formatDate(trip.departureTime)} • {formatTime(trip.departureTime)}
+                    {formatDate(trip.departureTime)} - {formatTime(trip.departureTime)}
                   </div>
                 </div>
                 <div>
                   <div className="text-sm text-slate-600">Arrival</div>
                   <div className="mt-1 text-sm text-slate-950">
-                    {formatDate(trip.arrivalTime)} • {formatTime(trip.arrivalTime)}
+                    {formatDate(trip.arrivalTime)} - {formatTime(trip.arrivalTime)}
                   </div>
                 </div>
                 <div>
@@ -113,3 +113,4 @@ export function TripPage() {
     </div>
   )
 }
+

@@ -1,5 +1,6 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+import type { CreateRouteInput } from '@/shared/api/apiClient'
 import { apiClient } from '@/shared/api/apiClient'
 import { throwApiError } from '@/shared/api/errors'
 
@@ -29,6 +30,24 @@ export function useSeatOccupancySummaryQuery() {
       const res = await apiClient.seats.occupancySummary()
       if (!res.ok) throwApiError(res.error)
       return res.data
+    },
+  })
+}
+
+export function useCreateRouteMutation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (input: CreateRouteInput) => {
+      const res = await apiClient.routes.create(input)
+      if (!res.ok) throwApiError(res.error)
+      return res.data
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: adminKeys.routes() })
+      void queryClient.invalidateQueries({ queryKey: adminKeys.seatOccupancy() })
+      void queryClient.invalidateQueries({ queryKey: ['cities'] })
+      void queryClient.invalidateQueries({ queryKey: ['trips'] })
     },
   })
 }

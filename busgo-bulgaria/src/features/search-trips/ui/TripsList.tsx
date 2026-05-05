@@ -1,4 +1,4 @@
-import type { Trip } from '@/entities/trip/types'
+﻿import type { Trip } from '@/entities/trip/types'
 import { Button } from '@/shared/components/ui/Button'
 import { Card } from '@/shared/components/ui/Card'
 import { formatDate, formatMoney, formatTime } from '@/shared/lib/format'
@@ -53,7 +53,7 @@ export function NoRoutesEmptyState() {
     <Card className="overflow-hidden p-0">
       <div className="grid gap-0 md:grid-cols-[1fr_auto] md:items-stretch">
         <div className="p-6 sm:p-8">
-          <div className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-black uppercase text-blue-700 ring-1 ring-blue-100">
+          <div className="inline-flex rounded-full bg-cyan-50 px-3 py-1 text-xs font-black uppercase text-cyan-700 ring-1 ring-cyan-100">
             No match
           </div>
           <h2 className="mt-4 text-xl font-black tracking-tight text-slate-950">
@@ -92,20 +92,20 @@ export function TripsList({ trips, onSelect }: TripsListProps) {
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
                 <span className="text-base font-black text-slate-950">
-                  {t.from.name} → {t.to.name}
+                  {t.from.name} to {t.to.name}
                 </span>
-                <span className="text-slate-500">•</span>
+                <span className="text-slate-500">-</span>
                 <span>
-                  {formatDate(t.departureTime)} • {formatTime(t.departureTime)}–{formatTime(t.arrivalTime)}
+                  {formatDate(t.departureTime)} - {formatTime(t.departureTime)} to {formatTime(t.arrivalTime)}
                 </span>
-                <span className="text-slate-500">•</span>
+                <span className="text-slate-500">-</span>
                 <span>{t.operator.name}</span>
               </div>
               <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-600">
                 <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700 ring-1 ring-emerald-100">
                   {t.durationMinutes} min
                 </span>
-                <span className="rounded-full bg-blue-50 px-2.5 py-1 text-blue-700 ring-1 ring-blue-100">
+                <span className="rounded-full bg-cyan-50 px-2.5 py-1 text-cyan-700 ring-1 ring-cyan-100">
                   Seats left: {t.seatsLeft}
                 </span>
                 {t.amenities.map((a) => (
@@ -132,3 +132,4 @@ export function TripsList({ trips, onSelect }: TripsListProps) {
     </div>
   )
 }
+
