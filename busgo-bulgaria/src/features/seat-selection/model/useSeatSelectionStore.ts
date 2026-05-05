@@ -11,6 +11,17 @@ type SeatSelectionState = {
   }
 }
 
+const emptySelectedSeatIds: string[] = []
+
+function uniqueSeatIds(seatIds: string[]) {
+  return Array.from(new Set(seatIds)).filter(Boolean)
+}
+
+function sameSeatIds(a: string[], b: string[]) {
+  if (a.length !== b.length) return false
+  return a.every((seatId, index) => seatId === b[index])
+}
+
 export const useSeatSelectionStore = create<SeatSelectionState>()(
   persist(
     (set) => ({
@@ -27,15 +38,23 @@ export const useSeatSelectionStore = create<SeatSelectionState>()(
             }
           }),
         setSeats: (tripId, seatIds) =>
-          set((s) => ({
-            ...s,
-            selectedSeatIdsByTripId: {
-              ...s.selectedSeatIdsByTripId,
-              [tripId]: Array.from(new Set(seatIds)).filter(Boolean),
-            },
-          })),
+          set((s) => {
+            const nextSeatIds = uniqueSeatIds(seatIds)
+            const currentSeatIds = s.selectedSeatIdsByTripId[tripId] ?? emptySelectedSeatIds
+            if (sameSeatIds(currentSeatIds, nextSeatIds)) return s
+
+            return {
+              ...s,
+              selectedSeatIdsByTripId: {
+                ...s.selectedSeatIdsByTripId,
+                [tripId]: nextSeatIds,
+              },
+            }
+          }),
         clearTrip: (tripId) =>
           set((s) => {
+            if (!s.selectedSeatIdsByTripId[tripId]) return s
+
             const next = { ...s.selectedSeatIdsByTripId }
             delete next[tripId]
             return { ...s, selectedSeatIdsByTripId: next }
@@ -51,5 +70,5 @@ export const useSeatSelectionStore = create<SeatSelectionState>()(
 )
 
 export function useSelectedSeatIds(tripId: string) {
-  return useSeatSelectionStore((s) => s.selectedSeatIdsByTripId[tripId] ?? [])
+  return useSeatSelectionStore((s) => s.selectedSeatIdsByTripId[tripId] ?? emptySelectedSeatIds)
 }
