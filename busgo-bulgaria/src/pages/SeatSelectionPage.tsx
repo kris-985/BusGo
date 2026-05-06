@@ -1,8 +1,9 @@
 ﻿import { useEffect, useMemo } from 'react'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 import { routes } from '@/app/router/routes'
 import { SeatStatus } from '@/entities/seat/types'
+import { useAuth } from '@/features/auth/model/authContext'
 import { useSeatAvailabilityByTripQuery } from '@/features/seat-selection/api/queries'
 import { useSeatSelectionStore, useSelectedSeatIds } from '@/features/seat-selection/model/useSeatSelectionStore'
 import { useTripByIdQuery } from '@/features/search-trips/api/queries'
@@ -15,6 +16,8 @@ import { cn } from '@/shared/lib/cn'
 import { formatDate, formatMoney, formatTime } from '@/shared/lib/format'
 
 export function SeatSelectionPage() {
+  const auth = useAuth()
+  const location = useLocation()
   const navigate = useNavigate()
   const { tripId } = useParams()
   const [searchParams] = useSearchParams()
@@ -231,21 +234,42 @@ export function SeatSelectionPage() {
                 This trip is fully booked.
               </div>
             ) : null}
+            {!auth.isAuthenticated ? (
+              <div className="mt-4 rounded-xl border border-cyan-400/30 bg-cyan-500/10 p-3 text-sm text-cyan-800">
+                Login or create an account to continue to checkout and buy tickets.
+              </div>
+            ) : null}
 
             <div className="mt-6 grid gap-3">
-              <Button
-                className="w-full"
-                disabled={derived.validSelectedSeatIds.length === 0}
-                onClick={() => {
-                  if (derived.validSelectedSeatIds.length === 0) return
-                  actions.setTripId(trip.id)
-                  actions.setTravelDate(travelDate ?? null)
-                  actions.setSelectedSeatIds(derived.validSelectedSeatIds)
-                  navigate(routes.checkout())
-                }}
-              >
-                Continue to checkout
-              </Button>
+              {auth.isAuthenticated ? (
+                <Button
+                  className="w-full"
+                  disabled={derived.validSelectedSeatIds.length === 0}
+                  onClick={() => {
+                    if (derived.validSelectedSeatIds.length === 0) return
+                    actions.setTripId(trip.id)
+                    actions.setTravelDate(travelDate ?? null)
+                    actions.setSelectedSeatIds(derived.validSelectedSeatIds)
+                    navigate(routes.checkout())
+                  }}
+                >
+                  Continue to checkout
+                </Button>
+              ) : (
+                <Button
+                  className="w-full"
+                  onClick={() => {
+                    if (derived.validSelectedSeatIds.length > 0) {
+                      actions.setTripId(trip.id)
+                      actions.setTravelDate(travelDate ?? null)
+                      actions.setSelectedSeatIds(derived.validSelectedSeatIds)
+                    }
+                    navigate(routes.auth(), { state: { from: location } })
+                  }}
+                >
+                  Login to buy ticket
+                </Button>
+              )}
               <Button
                 className="w-full"
                 variant="secondary"

@@ -18,7 +18,10 @@ export function AuthPage() {
   const [values, setValues] = useState({ name: '', email: '', password: '' })
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? routes.profile()
+  const fromLocation = (location.state as { from?: { pathname?: string; search?: string } } | null)?.from
+  const from = fromLocation?.pathname
+    ? `${fromLocation.pathname}${fromLocation.search ?? ''}`
+    : routes.profile()
 
   if (auth.isAuthenticated) {
     return <Navigate to={from} replace />
