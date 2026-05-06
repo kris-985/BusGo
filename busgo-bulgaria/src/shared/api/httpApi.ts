@@ -11,7 +11,9 @@ import type {
 } from '@/shared/api/apiClient'
 import type { ApiError, ApiResult } from '@/shared/api/types'
 
-const baseUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3001'
+const baseUrl = import.meta.env.PROD
+  ? ''
+  : import.meta.env.VITE_API_URL ?? 'http://localhost:3001'
 const authTokenKey = 'busgo:authToken'
 
 function ok<T>(data: T): ApiResult<T> {

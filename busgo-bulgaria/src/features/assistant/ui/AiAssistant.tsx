@@ -9,7 +9,9 @@ type AssistantMessage = {
   text: string
 }
 
-const baseUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3001'
+const baseUrl = import.meta.env.PROD
+  ? ''
+  : import.meta.env.VITE_API_URL ?? 'http://localhost:3001'
 
 const initialMessages: AssistantMessage[] = [
   {

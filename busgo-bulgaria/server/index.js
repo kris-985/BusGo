@@ -576,8 +576,7 @@ app.post('/assistant', async (req, res, next) => {
       return
     }
 
-    const db = await readDb()
-    const result = await assistantReply({ message, currentPath, db })
+    const result = await assistantReply({ message, currentPath })
     res.json(result)
   } catch (error) {
     next(error)
@@ -879,6 +878,10 @@ app.use((error, _req, res, _next) => {
   })
 })
 
-app.listen(port, () => {
-  console.log(`BusGo API listening on http://localhost:${port}`)
-})
+if (!process.env.VERCEL) {
+  app.listen(port, () => {
+    console.log(`BusGo API listening on http://localhost:${port}`)
+  })
+}
+
+export default app
