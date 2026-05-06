@@ -7,6 +7,32 @@ import type { Trip } from '@/entities/trip/types'
 import type { ApiResult } from '@/shared/api/types'
 import { httpApi } from '@/shared/api/httpApi'
 
+export type AuthUser = {
+  id: string
+  name: string
+  email: string
+  role: 'user' | 'admin'
+  createdAt: string
+}
+
+export type AuthResponse = {
+  token: string
+  user: AuthUser
+}
+
+export type LoginInput = {
+  email: string
+  password: string
+}
+
+export type SignupInput = {
+  name: string
+  email: string
+  password: string
+}
+
+export type AdminUserRecord = AuthUser
+
 export type SearchTripsParams = {
   fromCityId: string
   toCityId: string
@@ -87,6 +113,11 @@ export type PayInput = {
 }
 
 export type ApiClient = {
+  auth: {
+    login(input: LoginInput): Promise<ApiResult<AuthResponse>>
+    signup(input: SignupInput): Promise<ApiResult<AuthResponse>>
+    me(): Promise<ApiResult<AuthUser>>
+  }
   cities: {
     list(): Promise<ApiResult<City[]>>
   }
@@ -106,8 +137,12 @@ export type ApiClient = {
   }
   bookings: {
     list(): Promise<ApiResult<Booking[]>>
+    adminList(): Promise<ApiResult<Booking[]>>
     create(input: CreateBookingInput): Promise<ApiResult<Booking>>
     byId(bookingId: string): Promise<ApiResult<Booking>>
+  }
+  users: {
+    adminList(): Promise<ApiResult<AdminUserRecord[]>>
   }
   payments: {
     pay(input: PayInput): Promise<ApiResult<Payment>>

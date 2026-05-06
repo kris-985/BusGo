@@ -88,6 +88,44 @@ function seatOccupancySummary(): SeatOccupancySummary[] {
 }
 
 export const mockApi: ApiClient = {
+  auth: {
+    async login(input) {
+      await sleep(150)
+      return ok({
+        token: 'mock-token',
+        user: {
+          id: 'u-mock',
+          name: 'Mock User',
+          email: input.email,
+          role: input.email.includes('admin') ? 'admin' : 'user',
+          createdAt: new Date().toISOString(),
+        },
+      })
+    },
+    async signup(input) {
+      await sleep(150)
+      return ok({
+        token: 'mock-token',
+        user: {
+          id: 'u-mock',
+          name: input.name,
+          email: input.email,
+          role: 'user',
+          createdAt: new Date().toISOString(),
+        },
+      })
+    },
+    async me() {
+      await sleep(100)
+      return ok({
+        id: 'u-mock',
+        name: 'Mock User',
+        email: 'mock@busgo.bg',
+        role: 'user',
+        createdAt: new Date().toISOString(),
+      })
+    },
+  },
   cities: {
     async list() {
       await sleep(150)
@@ -192,6 +230,10 @@ export const mockApi: ApiClient = {
       await sleep(200)
       return ok(clone(bookings))
     },
+    async adminList() {
+      await sleep(200)
+      return ok(clone(bookings))
+    },
     async create(input: CreateBookingInput) {
       await sleep(350)
       const trip = trips.find((t) => t.id === input.tripId)
@@ -243,6 +285,20 @@ export const mockApi: ApiClient = {
       const booking = bookings.find((b) => b.id === bookingId)
       if (!booking) return fail('Booking not found', 404)
       return ok(booking)
+    },
+  },
+  users: {
+    async adminList() {
+      await sleep(120)
+      return ok([
+        {
+          id: 'u-admin',
+          name: 'Mock Admin',
+          email: 'admin@busgo.bg',
+          role: 'admin',
+          createdAt: new Date().toISOString(),
+        },
+      ])
     },
   },
   payments: {

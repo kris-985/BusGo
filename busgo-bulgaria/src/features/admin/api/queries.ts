@@ -8,6 +8,8 @@ export const adminKeys = {
   all: ['admin'] as const,
   routes: () => [...adminKeys.all, 'routes'] as const,
   seatOccupancy: () => [...adminKeys.all, 'seatOccupancy'] as const,
+  bookings: () => [...adminKeys.all, 'bookings'] as const,
+  users: () => [...adminKeys.all, 'users'] as const,
 }
 
 export function useAdminRoutesQuery() {
@@ -28,6 +30,28 @@ export function useSeatOccupancySummaryQuery() {
     refetchIntervalInBackground: true,
     queryFn: async () => {
       const res = await apiClient.seats.occupancySummary()
+      if (!res.ok) throwApiError(res.error)
+      return res.data
+    },
+  })
+}
+
+export function useAdminBookingsQuery() {
+  return useQuery({
+    queryKey: adminKeys.bookings(),
+    queryFn: async () => {
+      const res = await apiClient.bookings.adminList()
+      if (!res.ok) throwApiError(res.error)
+      return res.data
+    },
+  })
+}
+
+export function useAdminUsersQuery() {
+  return useQuery({
+    queryKey: adminKeys.users(),
+    queryFn: async () => {
+      const res = await apiClient.users.adminList()
       if (!res.ok) throwApiError(res.error)
       return res.data
     },

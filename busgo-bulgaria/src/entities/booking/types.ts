@@ -19,6 +19,9 @@ export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED'
 
 export interface Booking {
   id: ID
+  userId?: ID
+  userName?: string
+  userEmail?: string
   createdAt: ISODateTime
   status: BookingStatus
   trip: Trip

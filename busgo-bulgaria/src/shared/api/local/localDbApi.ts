@@ -502,6 +502,44 @@ function seatOccupancySummary(): SeatOccupancySummary[] {
 }
 
 export const localDbApi: ApiClient = {
+  auth: {
+    async login(input) {
+      await sleep(80)
+      return ok({
+        token: 'local-token',
+        user: {
+          id: 'u-local',
+          name: input.email.includes('admin') ? 'Local Admin' : 'Local User',
+          email: input.email,
+          role: input.email.includes('admin') ? 'admin' : 'user',
+          createdAt: new Date().toISOString(),
+        },
+      })
+    },
+    async signup(input) {
+      await sleep(80)
+      return ok({
+        token: 'local-token',
+        user: {
+          id: 'u-local',
+          name: input.name,
+          email: input.email,
+          role: 'user',
+          createdAt: new Date().toISOString(),
+        },
+      })
+    },
+    async me() {
+      await sleep(80)
+      return ok({
+        id: 'u-local',
+        name: 'Local User',
+        email: 'local@busgo.bg',
+        role: 'user',
+        createdAt: new Date().toISOString(),
+      })
+    },
+  },
   cities: {
     async list() {
       await sleep(80)
@@ -602,6 +640,10 @@ export const localDbApi: ApiClient = {
       await sleep(100)
       return ok(clone(bookings))
     },
+    async adminList() {
+      await sleep(100)
+      return ok(clone(bookings))
+    },
     async create(input: CreateBookingInput) {
       await sleep(180)
       const record = routeRecords.find((route) => route.id === input.tripId)
@@ -640,6 +682,20 @@ export const localDbApi: ApiClient = {
       const booking = bookings.find((item) => item.id === bookingId)
       if (!booking) return fail('Booking not found', 404)
       return ok(clone(booking))
+    },
+  },
+  users: {
+    async adminList() {
+      await sleep(80)
+      return ok([
+        {
+          id: 'u-admin',
+          name: 'Local Admin',
+          email: 'admin@busgo.bg',
+          role: 'admin',
+          createdAt: new Date().toISOString(),
+        },
+      ])
     },
   },
   payments: {

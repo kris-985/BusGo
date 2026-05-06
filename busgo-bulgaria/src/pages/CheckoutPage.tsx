@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 
 import { routes } from '@/app/router/routes'
 import { SeatStatus } from '@/entities/seat/types'
+import { useAuth } from '@/features/auth/model/authContext'
 import { useCreateBookingMutation } from '@/features/booking/api/mutations'
 import { type DraftPassenger, useBookingStore } from '@/features/booking/model/useBookingStore'
 import { useSeatAvailabilityByTripQuery } from '@/features/seat-selection/api/queries'
@@ -51,6 +52,7 @@ function simulatePayment(method: string, cardNumber: string) {
 
 export function CheckoutPage() {
   const navigate = useNavigate()
+  const auth = useAuth()
   const booking = useBookingStore()
   const { draft, actions } = booking
   const seatActions = useSeatSelectionStore((s) => s.actions)
@@ -73,6 +75,11 @@ export function CheckoutPage() {
       )),
     )
   }, [actions, draft.passengers, draft.selectedSeatIds])
+
+  useEffect(() => {
+    if (!auth.user || draft.contactEmail.trim()) return
+    actions.setContact({ email: auth.user.email, phone: draft.contactPhone })
+  }, [actions, auth.user, draft.contactEmail, draft.contactPhone])
 
   const passengerRows = useMemo(
     () =>

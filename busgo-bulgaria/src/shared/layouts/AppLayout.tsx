@@ -15,7 +15,9 @@ const popularRoutes = [
 ] as const
 
 const helpLinks = [
+  { label: 'Home', to: routes.home() },
   { label: 'Search trips', to: routes.searchResults() },
+  { label: 'About', to: routes.about() },
   { label: 'My bookings', to: routes.myBookings() },
   { label: 'Account profile', to: routes.profile() },
   { label: 'Route admin', to: routes.admin() },

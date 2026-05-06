@@ -2,6 +2,10 @@ import express from 'express'
 import { readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import bcrypt from 'bcryptjs'
+import 'dotenv/config'
+import jwt from 'jsonwebtoken'
+import { MongoClient } from 'mongodb'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const dbPath = path.join(__dirname, 'db.json')
@@ -9,6 +13,13 @@ const app = express()
 const port = Number(process.env.PORT ?? 3001)
 const currency = 'BGN'
 const operator = { id: 'op-busgo', name: 'BusGo Bulgaria' }
+const mongoUri = process.env.MONGODB_URI ?? 'mongodb://127.0.0.1:27017'
+const mongoDbName = process.env.MONGODB_DB ?? 'busgo'
+const jwtSecret = process.env.JWT_SECRET ?? 'busgo-dev-secret'
+const client = new MongoClient(mongoUri, {
+  serverSelectionTimeoutMS: Number(process.env.MONGODB_TIMEOUT_MS ?? 5000),
+})
+let mongoDbPromise
 
 const cityIdByName = new Map([
   ['Sofia', 'sof'],
@@ -44,13 +55,55 @@ app.use(express.json())
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', process.env.CORS_ORIGIN ?? '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
   if (req.method === 'OPTIONS') {
     res.sendStatus(204)
     return
   }
   next()
 })
+
+async function mongoDb() {
+  mongoDbPromise ??= client.connect().then(async () => {
+    const db = client.db(mongoDbName)
+    await Promise.all([
+      db.collection('users').createIndex({ email: 1 }, { unique: true }),
+      db.collection('bookings').createIndex({ userId: 1, createdAt: -1 }),
+      db.collection('routes').createIndex({ id: 1 }, { unique: true }),
+    ])
+    return db
+  })
+
+  return mongoDbPromise
+}
+
+async function seedMongoIfNeeded(db) {
+  const routesCount = await db.collection('routes').countDocuments()
+  if (routesCount === 0) {
+    const raw = await readFile(dbPath, 'utf8')
+    const seed = JSON.parse(raw)
+    if (Array.isArray(seed.routes) && seed.routes.length > 0) {
+      await db.collection('routes').insertMany(seed.routes)
+    }
+    if (Array.isArray(seed.bookings) && seed.bookings.length > 0) {
+      await db.collection('bookings').insertMany(seed.bookings)
+    }
+  }
+
+  const adminEmail = normalize(process.env.ADMIN_EMAIL ?? 'admin@busgo.bg')
+  const adminPassword = process.env.ADMIN_PASSWORD ?? 'admin123'
+  const existingAdmin = await db.collection('users').findOne({ email: adminEmail })
+  if (!existingAdmin) {
+    await db.collection('users').insertOne({
+      id: `u-${Date.now()}-admin`,
+      name: 'BusGo Admin',
+      email: adminEmail,
+      passwordHash: await bcrypt.hash(adminPassword, 10),
+      role: 'admin',
+      createdAt: new Date().toISOString(),
+    })
+  }
+}
 
 function normalize(value) {
   return String(value ?? '').trim().toLowerCase()
@@ -226,8 +279,13 @@ function initialOccupiedSeatIds(route) {
 }
 
 async function readDb() {
-  const raw = await readFile(dbPath, 'utf8')
-  const db = JSON.parse(raw)
+  const mongo = await mongoDb()
+  await seedMongoIfNeeded(mongo)
+  const [routes, bookings] = await Promise.all([
+    mongo.collection('routes').find({}, { projection: { _id: 0 } }).toArray(),
+    mongo.collection('bookings').find({}, { projection: { _id: 0 } }).sort({ createdAt: -1 }).toArray(),
+  ])
+  const db = { routes, bookings }
   db.bookings ??= []
   db.routes = ensureCompleteCityRoutes(db.routes).map((route) => {
     const occupiedSeatIds = Array.isArray(route.occupiedSeatIds)
@@ -243,11 +301,76 @@ async function readDb() {
 }
 
 async function writeDb(db) {
-  await writeFile(dbPath, `${JSON.stringify(db, null, 2)}\n`, 'utf8')
+  const mongo = await mongoDb()
+  await Promise.all([
+    mongo.collection('routes').deleteMany({}),
+    mongo.collection('bookings').deleteMany({}),
+  ])
+  await Promise.all([
+    db.routes.length ? mongo.collection('routes').insertMany(db.routes) : Promise.resolve(),
+    db.bookings.length ? mongo.collection('bookings').insertMany(db.bookings) : Promise.resolve(),
+  ])
 }
 
 function sendError(res, status, message) {
   res.status(status).json({ message })
+}
+
+function publicUser(user) {
+  return user
+    ? {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt,
+      }
+    : null
+}
+
+function signUserToken(user) {
+  return jwt.sign({ sub: user.id, role: user.role }, jwtSecret, { expiresIn: '7d' })
+}
+
+async function currentUser(req) {
+  const header = req.headers.authorization ?? ''
+  const token = header.startsWith('Bearer ') ? header.slice(7) : ''
+  if (!token) return null
+
+  try {
+    const payload = jwt.verify(token, jwtSecret)
+    const mongo = await mongoDb()
+    return await mongo.collection('users').findOne(
+      { id: payload.sub },
+      { projection: { _id: 0 } },
+    )
+  } catch {
+    return null
+  }
+}
+
+async function requireAuth(req, res, next) {
+  const user = await currentUser(req)
+  if (!user) {
+    sendError(res, 401, 'Login required')
+    return
+  }
+  req.user = user
+  next()
+}
+
+async function requireAdmin(req, res, next) {
+  const user = await currentUser(req)
+  if (!user) {
+    sendError(res, 401, 'Login required')
+    return
+  }
+  if (user.role !== 'admin') {
+    sendError(res, 403, 'Admin role required')
+    return
+  }
+  req.user = user
+  next()
 }
 
 function delay(ms = apiDelayMs) {
@@ -332,6 +455,74 @@ app.get('/health', (_req, res) => {
   res.json({ ok: true })
 })
 
+app.post('/auth/signup', async (req, res, next) => {
+  try {
+    await delay()
+    const name = titleCase(req.body.name)
+    const email = normalize(req.body.email)
+    const password = String(req.body.password ?? '')
+
+    if (!name) {
+      sendError(res, 422, 'Name is required')
+      return
+    }
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      sendError(res, 422, 'Valid email is required')
+      return
+    }
+    if (password.length < 6) {
+      sendError(res, 422, 'Password must be at least 6 characters')
+      return
+    }
+
+    const mongo = await mongoDb()
+    await seedMongoIfNeeded(mongo)
+    const existingUser = await mongo.collection('users').findOne({ email })
+    if (existingUser) {
+      sendError(res, 409, 'Email is already registered')
+      return
+    }
+
+    const user = {
+      id: `u-${Date.now()}`,
+      name,
+      email,
+      passwordHash: await bcrypt.hash(password, 10),
+      role: 'user',
+      createdAt: new Date().toISOString(),
+    }
+    await mongo.collection('users').insertOne(user)
+    res.status(201).json({ token: signUserToken(user), user: publicUser(user) })
+  } catch (error) {
+    next(error)
+  }
+})
+
+app.post('/auth/login', async (req, res, next) => {
+  try {
+    await delay()
+    const email = normalize(req.body.email)
+    const password = String(req.body.password ?? '')
+    const mongo = await mongoDb()
+    await seedMongoIfNeeded(mongo)
+    const user = await mongo.collection('users').findOne({ email }, { projection: { _id: 0 } })
+    const passwordOk = user ? await bcrypt.compare(password, user.passwordHash) : false
+
+    if (!user || !passwordOk) {
+      sendError(res, 401, 'Invalid email or password')
+      return
+    }
+
+    res.json({ token: signUserToken(user), user: publicUser(user) })
+  } catch (error) {
+    next(error)
+  }
+})
+
+app.get('/auth/me', requireAuth, (req, res) => {
+  res.json(publicUser(req.user))
+})
+
 app.get('/cities', async (_req, res, next) => {
   try {
     const db = await readDb()
@@ -351,7 +542,7 @@ app.get('/routes', async (_req, res, next) => {
   }
 })
 
-app.get('/admin/routes', async (_req, res, next) => {
+app.get('/admin/routes', requireAdmin, async (_req, res, next) => {
   try {
     await delay()
     const db = await readDb()
@@ -361,7 +552,7 @@ app.get('/admin/routes', async (_req, res, next) => {
   }
 })
 
-app.post('/routes', async (req, res, next) => {
+app.post('/routes', requireAdmin, async (req, res, next) => {
   try {
     await delay()
     const db = await readDb()
@@ -468,7 +659,22 @@ app.get('/seats/occupancy', async (_req, res, next) => {
   }
 })
 
-app.get('/bookings', async (_req, res, next) => {
+app.get('/admin/users', requireAdmin, async (_req, res, next) => {
+  try {
+    await delay()
+    const mongo = await mongoDb()
+    await seedMongoIfNeeded(mongo)
+    const users = await mongo.collection('users')
+      .find({}, { projection: { _id: 0, passwordHash: 0 } })
+      .sort({ role: 1, createdAt: -1 })
+      .toArray()
+    res.json(users)
+  } catch (error) {
+    next(error)
+  }
+})
+
+app.get('/admin/bookings', requireAdmin, async (_req, res, next) => {
   try {
     await delay()
     const db = await readDb()
@@ -478,7 +684,20 @@ app.get('/bookings', async (_req, res, next) => {
   }
 })
 
-app.get('/bookings/:id', async (req, res, next) => {
+app.get('/bookings', requireAuth, async (req, res, next) => {
+  try {
+    await delay()
+    const db = await readDb()
+    const bookings = req.user.role === 'admin'
+      ? db.bookings
+      : db.bookings.filter((booking) => booking.userId === req.user.id)
+    res.json(bookings)
+  } catch (error) {
+    next(error)
+  }
+})
+
+app.get('/bookings/:id', requireAuth, async (req, res, next) => {
   try {
     await delay()
     const db = await readDb()
@@ -487,13 +706,17 @@ app.get('/bookings/:id', async (req, res, next) => {
       sendError(res, 404, 'Booking not found')
       return
     }
+    if (req.user.role !== 'admin' && booking.userId !== req.user.id) {
+      sendError(res, 403, 'You can only view your own bookings')
+      return
+    }
     res.json(booking)
   } catch (error) {
     next(error)
   }
 })
 
-app.post('/bookings', async (req, res, next) => {
+app.post('/bookings', requireAuth, async (req, res, next) => {
   try {
     await delay()
     const db = await readDb()
@@ -536,6 +759,9 @@ app.post('/bookings', async (req, res, next) => {
     const totalAmount = uniqueSeatIds.length * trip.price.amount
     const booking = {
       id: `b-${Date.now()}`,
+      userId: req.user.id,
+      userName: req.user.name,
+      userEmail: req.user.email,
       createdAt: new Date().toISOString(),
       status: 'CONFIRMED',
       trip,
@@ -555,13 +781,17 @@ app.post('/bookings', async (req, res, next) => {
   }
 })
 
-app.post('/payments', async (req, res, next) => {
+app.post('/payments', requireAuth, async (req, res, next) => {
   try {
     await delay()
     const db = await readDb()
     const booking = db.bookings.find((item) => item.id === req.body.bookingId)
     if (!booking) {
       sendError(res, 404, 'Booking not found')
+      return
+    }
+    if (req.user.role !== 'admin' && booking.userId !== req.user.id) {
+      sendError(res, 403, 'You can only pay for your own booking')
       return
     }
 

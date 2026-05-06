@@ -3,8 +3,13 @@ import { Link } from 'react-router-dom'
 
 import { routes } from '@/app/router/routes'
 import type { Booking, BookingStatus } from '@/entities/booking/types'
-import { useSeatOccupancySummaryQuery, useAdminRoutesQuery, useCreateRouteMutation } from '@/features/admin/api/queries'
-import { useBookingsQuery } from '@/features/booking/api/mutations'
+import {
+  useAdminBookingsQuery,
+  useAdminRoutesQuery,
+  useAdminUsersQuery,
+  useCreateRouteMutation,
+  useSeatOccupancySummaryQuery,
+} from '@/features/admin/api/queries'
 import { useCitiesQuery } from '@/features/search-trips/api/queries'
 import type { AdminRouteRecord } from '@/shared/api/apiClient'
 import { Button } from '@/shared/components/ui/Button'
@@ -118,7 +123,8 @@ function StatCard({
 
 export function AdminDashboardPage() {
   const routesQuery = useAdminRoutesQuery()
-  const bookingsQuery = useBookingsQuery()
+  const bookingsQuery = useAdminBookingsQuery()
+  const usersQuery = useAdminUsersQuery()
   const occupancyQuery = useSeatOccupancySummaryQuery()
   const citiesQuery = useCitiesQuery()
   const createRouteMutation = useCreateRouteMutation()
@@ -179,9 +185,9 @@ export function AdminDashboardPage() {
     [bookingsQuery.data],
   )
 
-  const isLoading = routesQuery.isLoading || bookingsQuery.isLoading || occupancyQuery.isLoading
-  const hasError = routesQuery.isError || bookingsQuery.isError || occupancyQuery.isError
-  const dashboardError = routesQuery.error ?? bookingsQuery.error ?? occupancyQuery.error
+  const isLoading = routesQuery.isLoading || bookingsQuery.isLoading || occupancyQuery.isLoading || usersQuery.isLoading
+  const hasError = routesQuery.isError || bookingsQuery.isError || occupancyQuery.isError || usersQuery.isError
+  const dashboardError = routesQuery.error ?? bookingsQuery.error ?? occupancyQuery.error ?? usersQuery.error
   const cities = citiesQuery.data ?? []
 
   function updateRouteFormValue(name: keyof RouteFormValues, value: string) {
@@ -362,6 +368,44 @@ export function AdminDashboardPage() {
           </div>
 
           <Card className="p-6">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-950">MongoDB users</h2>
+              <p className="mt-1 text-sm text-slate-500">Admin access is controlled by the role stored on each user record.</p>
+            </div>
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full min-w-[560px] text-left text-sm">
+                <thead className="border-b border-slate-200 text-xs uppercase text-slate-500">
+                  <tr>
+                    <th className="py-3 pr-4 font-medium">User</th>
+                    <th className="py-3 pr-4 font-medium">Email</th>
+                    <th className="py-3 pr-4 font-medium">Role</th>
+                    <th className="py-3 font-medium">Created</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {(usersQuery.data ?? []).map((user) => (
+                    <tr key={user.id}>
+                      <td className="py-3 pr-4 font-medium text-slate-950">{user.name}</td>
+                      <td className="py-3 pr-4 text-slate-700">{user.email}</td>
+                      <td className="py-3 pr-4">
+                        <span className={cn(
+                          'rounded-lg border px-2 py-0.5 text-xs font-medium',
+                          user.role === 'admin'
+                            ? 'border-cyan-400/30 bg-cyan-500/10 text-cyan-800'
+                            : 'border-slate-300 bg-slate-100 text-slate-700',
+                        )}>
+                          {user.role}
+                        </span>
+                      </td>
+                      <td className="py-3 text-slate-700">{formatDate(user.createdAt)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+
+          <Card className="p-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h2 className="text-lg font-semibold text-slate-950">Routes</h2>
@@ -429,10 +473,11 @@ export function AdminDashboardPage() {
               </div>
 
               <div className="mt-4 overflow-x-auto">
-                <table className="w-full min-w-[860px] text-left text-sm">
+                <table className="w-full min-w-[940px] text-left text-sm">
                   <thead className="border-b border-slate-200 text-xs uppercase text-slate-500">
                     <tr>
                       <th className="py-3 pr-4 font-medium">Booking</th>
+                      <th className="py-3 pr-4 font-medium">Buyer</th>
                       <th className="py-3 pr-4 font-medium">Route</th>
                       <th className="py-3 pr-4 font-medium">Departure</th>
                       <th className="py-3 pr-4 font-medium">Seats</th>
@@ -449,6 +494,10 @@ export function AdminDashboardPage() {
                           <div className="mt-1 text-xs text-slate-500">
                             {booking.passengers.length} passenger{booking.passengers.length === 1 ? '' : 's'}
                           </div>
+                        </td>
+                        <td className="py-3 pr-4">
+                          <div className="font-medium text-slate-950">{booking.userName ?? 'Guest import'}</div>
+                          <div className="mt-1 text-xs text-slate-500">{booking.userEmail ?? booking.contactEmail}</div>
                         </td>
                         <td className="py-3 pr-4 text-slate-700">{bookingRouteName(booking)}</td>
                         <td className="py-3 pr-4 text-slate-700">

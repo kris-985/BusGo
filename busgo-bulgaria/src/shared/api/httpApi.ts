@@ -4,12 +4,15 @@ import type {
   BookSeatsInput,
   CreateBookingInput,
   CreateRouteInput,
+  LoginInput,
   PayInput,
   SearchTripsParams,
+  SignupInput,
 } from '@/shared/api/apiClient'
 import type { ApiError, ApiResult } from '@/shared/api/types'
 
 const baseUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3001'
+const authTokenKey = 'busgo:authToken'
 
 function ok<T>(data: T): ApiResult<T> {
   return { ok: true, data }
@@ -25,9 +28,11 @@ function errorCodeFromStatus(status?: number): ApiError['code'] {
 
 async function request<T>(path: string, init?: RequestInit): Promise<ApiResult<T>> {
   try {
+    const token = localStorage.getItem(authTokenKey)
     const response = await fetch(`${baseUrl}${path}`, {
       headers: {
         'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...init?.headers,
       },
       ...init,
@@ -59,6 +64,23 @@ async function request<T>(path: string, init?: RequestInit): Promise<ApiResult<T
 }
 
 export const httpApi: ApiClient = {
+  auth: {
+    login(input: LoginInput) {
+      return request('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify(input),
+      })
+    },
+    signup(input: SignupInput) {
+      return request('/auth/signup', {
+        method: 'POST',
+        body: JSON.stringify(input),
+      })
+    },
+    me() {
+      return request('/auth/me')
+    },
+  },
   cities: {
     list() {
       return request('/cities')
@@ -123,6 +145,9 @@ export const httpApi: ApiClient = {
     list() {
       return request('/bookings')
     },
+    adminList() {
+      return request('/admin/bookings')
+    },
     create(input: CreateBookingInput) {
       return request('/bookings', {
         method: 'POST',
@@ -131,6 +156,11 @@ export const httpApi: ApiClient = {
     },
     byId(bookingId: string) {
       return request(`/bookings/${encodeURIComponent(bookingId)}`)
+    },
+  },
+  users: {
+    adminList() {
+      return request('/admin/users')
     },
   },
   payments: {

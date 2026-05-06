@@ -1,5 +1,7 @@
 export const routes = {
   home: () => '/',
+  about: () => '/about',
+  auth: () => '/login',
   searchResults: () => '/search-results',
   seatSelection: (tripId: string) => `/seat-selection/${tripId}`,
   checkout: () => '/checkout',
