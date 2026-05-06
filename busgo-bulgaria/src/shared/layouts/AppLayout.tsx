@@ -1,6 +1,7 @@
 import { Link, Outlet } from 'react-router-dom'
 
 import { routes } from '@/app/router/routes'
+import { AiAssistant } from '@/features/assistant/ui/AiAssistant'
 import { Navbar } from '@/shared/components/navigation/Navbar'
 import { todayYmd } from '@/shared/lib/format'
 
@@ -133,6 +134,7 @@ export function AppLayout() {
           </div>
         </div>
       </footer>
+      <AiAssistant />
     </div>
   )
 }

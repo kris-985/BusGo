@@ -343,6 +343,94 @@ function publicUser(user) {
     : null
 }
 
+function fallbackAssistantReply(message) {
+  const text = normalize(message)
+  if (text.includes('ticket') || text.includes('bilet') || text.includes('билет')) {
+    return 'За да купиш билет: избери маршрут от Search, избери свободни места, влез или се регистрирай, после продължи към checkout.'
+  }
+  if (text.includes('login') || text.includes('register') || text.includes('регист')) {
+    return 'За покупка на билет е нужен профил. Отвори Login, избери Sign up за нов акаунт или Login за съществуващ.'
+  }
+  if (text.includes('admin')) {
+    return 'Admin панелът е достъпен само за потребители с role admin в MongoDB. Там се виждат потребители, купувачи, билети и приходи.'
+  }
+  if (text.includes('seat') || text.includes('място')) {
+    return 'След като избереш маршрут, отвори seat map-а и избери зелено свободно място. Червените места са заети.'
+  }
+  return 'Мога да помогна с търсене на маршрути, избор на места, регистрация, покупка на билет и профил. Попитай ме например: "Как да купя билет?"'
+}
+
+async function openAiAssistantReply({ message, currentPath, db }) {
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) {
+    return {
+      reply: fallbackAssistantReply(message),
+      mode: 'fallback',
+    }
+  }
+
+  const routesPreview = db.routes.slice(0, 12).map((route) => ({
+    from: route.fromCity,
+    to: route.toCity,
+    departureTime: route.departureTime,
+    price: route.price,
+    seatsLeft: route.availableSeats,
+  }))
+
+  const response = await fetch('https://api.openai.com/v1/responses', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: process.env.OPENAI_MODEL ?? 'gpt-5-mini',
+      instructions: [
+        'You are the BusGo Bulgaria AI Assistant inside a bus ticketing web app.',
+        'Answer in Bulgarian unless the user writes in English.',
+        'Be concise, practical, and friendly.',
+        'Help with route search, seat selection, login/signup, checkout, tickets, profile, and admin role rules.',
+        'Do not invent unavailable routes or prices. Use provided route context when useful.',
+      ].join(' '),
+      input: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'input_text',
+              text: JSON.stringify({
+                currentPath,
+                availableRoutesPreview: routesPreview,
+                userMessage: message,
+              }),
+            },
+          ],
+        },
+      ],
+    }),
+  })
+
+  const data = await response.json().catch(() => null)
+  if (!response.ok) {
+    console.error('[BusGo AI] OpenAI request failed', data)
+    return {
+      reply: fallbackAssistantReply(message),
+      mode: 'fallback',
+    }
+  }
+
+  const reply = data?.output_text
+    ?? data?.output?.flatMap((item) => item.content ?? [])
+      .map((item) => item.text)
+      .filter(Boolean)
+      .join('\n')
+
+  return {
+    reply: reply?.trim() || fallbackAssistantReply(message),
+    mode: 'openai',
+  }
+}
+
 function signUserToken(user) {
   return jwt.sign({ sub: user.id, role: user.role }, jwtSecret, { expiresIn: '7d' })
 }
@@ -536,6 +624,25 @@ app.post('/auth/login', async (req, res, next) => {
 
 app.get('/auth/me', requireAuth, (req, res) => {
   res.json(publicUser(req.user))
+})
+
+app.post('/assistant', async (req, res, next) => {
+  try {
+    await delay(150)
+    const message = String(req.body.message ?? '').trim()
+    const currentPath = String(req.body.currentPath ?? '/')
+
+    if (!message) {
+      sendError(res, 422, 'Message is required')
+      return
+    }
+
+    const db = await readDb()
+    const result = await openAiAssistantReply({ message, currentPath, db })
+    res.json(result)
+  } catch (error) {
+    next(error)
+  }
 })
 
 app.get('/cities', async (_req, res, next) => {
