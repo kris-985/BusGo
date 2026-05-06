@@ -345,89 +345,28 @@ function publicUser(user) {
 
 function fallbackAssistantReply(message) {
   const text = normalize(message)
-  if (text.includes('ticket') || text.includes('bilet') || text.includes('билет')) {
-    return 'За да купиш билет: избери маршрут от Search, избери свободни места, влез или се регистрирай, после продължи към checkout.'
+  if (text.includes('ticket') || text.includes('bilet') || text.includes('билет') || text.includes('купи')) {
+    return 'Да. Най-бързият път е: отвори Search, избери откъде и докъде пътуваш, избери маршрут, после свободни места и продължи към checkout. Ако ми кажеш градовете и дата, ще те насоча по-конкретно.'
   }
-  if (text.includes('login') || text.includes('register') || text.includes('регист')) {
-    return 'За покупка на билет е нужен профил. Отвори Login, избери Sign up за нов акаунт или Login за съществуващ.'
+  if (text.includes('login') || text.includes('register') || text.includes('регист') || text.includes('вход')) {
+    return 'За покупка ти трябва профил. Отвори Login, избери Sign up за нов акаунт или Login, ако вече имаш регистрация. След вход можеш да довършиш резервацията.'
   }
   if (text.includes('admin')) {
-    return 'Admin панелът е достъпен само за потребители с role admin в MongoDB. Там се виждат потребители, купувачи, билети и приходи.'
+    return 'Admin панелът е само за потребители с role admin. Там можеш да следиш маршрути, потребители, резервации и приходи.'
   }
-  if (text.includes('seat') || text.includes('място')) {
-    return 'След като избереш маршрут, отвори seat map-а и избери зелено свободно място. Червените места са заети.'
+  if (text.includes('seat') || text.includes('място') || text.includes('места')) {
+    return 'След избран маршрут отвори картата на местата. Зелените са свободни, червените са заети. Можеш да избереш едно или няколко свободни места преди checkout.'
   }
-  return 'Мога да помогна с търсене на маршрути, избор на места, регистрация, покупка на билет и профил. Попитай ме например: "Как да купя билет?"'
+  if (text.includes('маршрут') || text.includes('route') || text.includes('пътувам') || text.includes('до ')) {
+    return 'Мога да помогна с маршрут, но ми трябват поне град на тръгване и град на пристигане. Например: "София до Варна утре" или "Пловдив до Бургас".'
+  }
+  return 'Кажи ми какво искаш да направиш: да намериш маршрут, да купиш билет, да избереш места или да провериш профил/резервация. Ако дадеш градове и дата, ще бъда по-точен.'
 }
 
-async function openAiAssistantReply({ message, currentPath, db }) {
-  const apiKey = process.env.OPENAI_API_KEY
-  if (!apiKey) {
-    return {
-      reply: fallbackAssistantReply(message),
-      mode: 'fallback',
-    }
-  }
-
-  const routesPreview = db.routes.slice(0, 12).map((route) => ({
-    from: route.fromCity,
-    to: route.toCity,
-    departureTime: route.departureTime,
-    price: route.price,
-    seatsLeft: route.availableSeats,
-  }))
-
-  const response = await fetch('https://api.openai.com/v1/responses', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: process.env.OPENAI_MODEL ?? 'gpt-5-mini',
-      instructions: [
-        'You are the BusGo Bulgaria AI Assistant inside a bus ticketing web app.',
-        'Answer in Bulgarian unless the user writes in English.',
-        'Be concise, practical, and friendly.',
-        'Help with route search, seat selection, login/signup, checkout, tickets, profile, and admin role rules.',
-        'Do not invent unavailable routes or prices. Use provided route context when useful.',
-      ].join(' '),
-      input: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'input_text',
-              text: JSON.stringify({
-                currentPath,
-                availableRoutesPreview: routesPreview,
-                userMessage: message,
-              }),
-            },
-          ],
-        },
-      ],
-    }),
-  })
-
-  const data = await response.json().catch(() => null)
-  if (!response.ok) {
-    console.error('[BusGo AI] OpenAI request failed', data)
-    return {
-      reply: fallbackAssistantReply(message),
-      mode: 'fallback',
-    }
-  }
-
-  const reply = data?.output_text
-    ?? data?.output?.flatMap((item) => item.content ?? [])
-      .map((item) => item.text)
-      .filter(Boolean)
-      .join('\n')
-
+async function assistantReply({ message }) {
   return {
-    reply: reply?.trim() || fallbackAssistantReply(message),
-    mode: 'openai',
+    reply: fallbackAssistantReply(message),
+    mode: 'local',
   }
 }
 
@@ -638,7 +577,7 @@ app.post('/assistant', async (req, res, next) => {
     }
 
     const db = await readDb()
-    const result = await openAiAssistantReply({ message, currentPath, db })
+    const result = await assistantReply({ message, currentPath, db })
     res.json(result)
   } catch (error) {
     next(error)
@@ -934,7 +873,10 @@ app.post('/payments', requireAuth, async (req, res, next) => {
 
 app.use((error, _req, res, _next) => {
   console.error(error)
-  res.status(500).json({ message: 'Internal server error' })
+  const status = Number.isInteger(error.status) ? error.status : 500
+  res.status(status).json({
+    message: status === 500 ? 'Internal server error' : error.message,
+  })
 })
 
 app.listen(port, () => {
