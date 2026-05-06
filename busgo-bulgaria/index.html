@@ -7,6 +7,19 @@
     <title>busgo-bulgaria</title>
   </head>
   <body>
+    <script>
+      ;(() => {
+        try {
+          const storedTheme = localStorage.getItem('busgo:theme')
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+          if (storedTheme === 'dark' || (!storedTheme && prefersDark)) {
+            document.documentElement.classList.add('dark')
+          }
+        } catch {
+          // Keep the default light theme if browser storage is unavailable.
+        }
+      })()
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

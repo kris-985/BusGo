@@ -12,11 +12,11 @@ export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variantClass: Record<ButtonVariant, string> = {
   primary:
-    'bg-slate-950 text-white shadow-[0_12px_28px_rgba(15,23,42,0.22)] hover:bg-slate-800 active:bg-slate-950 disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none',
+    'bg-slate-950 text-white shadow-[0_12px_28px_rgba(15,23,42,0.22)] hover:bg-slate-800 active:bg-slate-950 disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none dark:bg-cyan-400 dark:text-slate-950 dark:hover:bg-cyan-300 dark:active:bg-cyan-400 dark:disabled:bg-slate-700 dark:disabled:text-slate-400',
   secondary:
-    'border border-cyan-200 bg-cyan-50 text-cyan-800 hover:border-cyan-300 hover:bg-cyan-100 active:bg-cyan-50 disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-600',
+    'border border-cyan-200 bg-cyan-50 text-cyan-800 hover:border-cyan-300 hover:bg-cyan-100 active:bg-cyan-50 disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-600 dark:border-cyan-400/30 dark:bg-cyan-400/10 dark:text-cyan-200 dark:hover:border-cyan-300/50 dark:hover:bg-cyan-400/15 dark:disabled:border-slate-700 dark:disabled:bg-slate-800 dark:disabled:text-slate-500',
   ghost:
-    'bg-transparent text-slate-700 hover:bg-white/80 hover:text-slate-950 active:bg-white disabled:text-slate-600',
+    'bg-transparent text-slate-700 hover:bg-white/80 hover:text-slate-950 active:bg-white disabled:text-slate-600 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white dark:active:bg-slate-800 dark:disabled:text-slate-500',
   danger:
     'bg-rose-600 text-white shadow-sm shadow-rose-900/15 hover:bg-rose-500 active:bg-rose-700 disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none',
 }

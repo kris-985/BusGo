@@ -3,12 +3,13 @@ import { Link, NavLink, useNavigate } from 'react-router-dom'
 
 import { routes } from '@/app/router/routes'
 import { useAuth } from '@/features/auth/model/authContext'
+import { ThemeToggle } from '@/shared/components/navigation/ThemeToggle'
 import { cn } from '@/shared/lib/cn'
 
 const navLinkBase =
-  'rounded-full px-3.5 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-white hover:text-slate-950'
+  'rounded-full px-3.5 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-white hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'
 const mobileNavLinkBase =
-  'flex h-11 items-center rounded-xl px-4 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-950'
+  'flex h-11 items-center rounded-xl px-4 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'
 
 export function Navbar() {
   const auth = useAuth()
@@ -31,7 +32,7 @@ export function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/70 bg-white/75 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b border-white/70 bg-white/75 backdrop-blur-xl dark:border-slate-800/80 dark:bg-slate-950/80">
       <div className="mx-auto max-w-7xl py-3 container-px lg:py-0">
         <div className="flex min-h-14 items-center justify-between gap-3 lg:min-h-20">
         <Link to={routes.home()} className="flex items-center gap-3" onClick={() => setIsMenuOpen(false)}>
@@ -47,36 +48,42 @@ export function Navbar() {
           </div>
         </Link>
 
-        <button
-          type="button"
-          className="relative grid h-11 w-11 place-items-center rounded-xl border border-slate-200 bg-white text-slate-950 shadow-sm transition-colors hover:bg-slate-50 lg:hidden"
-          aria-label={isMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
-          aria-expanded={isMenuOpen}
-          onClick={() => setIsMenuOpen((current) => !current)}
-        >
-          <span className="relative block h-5 w-5">
-            <span
-              className={cn(
-                'absolute left-0 top-1 block h-0.5 w-5 rounded-full bg-slate-950 transition-all duration-300',
-                isMenuOpen ? 'translate-y-2 rotate-45' : '',
-              )}
-            />
-            <span
-              className={cn(
-                'absolute left-0 top-2.5 block h-0.5 w-5 rounded-full bg-slate-950 transition-all duration-300',
-                isMenuOpen ? 'opacity-0' : '',
-              )}
-            />
-            <span
-              className={cn(
-                'absolute left-0 top-4 block h-0.5 w-5 rounded-full bg-slate-950 transition-all duration-300',
-                isMenuOpen ? '-translate-y-1.5 -rotate-45' : '',
-              )}
-            />
-          </span>
-        </button>
+        <div className="flex items-center gap-2 lg:order-3">
+          <div className="hidden lg:block">
+            <ThemeToggle />
+          </div>
+          <button
+            type="button"
+            className="relative grid h-11 w-11 place-items-center rounded-xl border border-slate-200 bg-white text-slate-950 shadow-sm transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800 lg:hidden"
+            aria-label={isMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            aria-expanded={isMenuOpen}
+            onClick={() => setIsMenuOpen((current) => !current)}
+          >
+            <span className="relative block h-5 w-5">
+              <span
+                className={cn(
+                  'absolute left-0 top-1 block h-0.5 w-5 rounded-full bg-current transition-all duration-300',
+                  isMenuOpen ? 'translate-y-2 rotate-45' : '',
+                )}
+              />
+              <span
+                className={cn(
+                  'absolute left-0 top-2.5 block h-0.5 w-5 rounded-full bg-current transition-all duration-300',
+                  isMenuOpen ? 'opacity-0' : '',
+                )}
+              />
+              <span
+                className={cn(
+                  'absolute left-0 top-4 block h-0.5 w-5 rounded-full bg-current transition-all duration-300',
+                  isMenuOpen ? '-translate-y-1.5 -rotate-45' : '',
+                )}
+              />
+            </span>
+          </button>
+        </div>
 
-        <nav className="hidden items-center gap-1 rounded-full border border-white/80 bg-slate-100/70 p-1 shadow-inner shadow-slate-200/70 lg:flex">
+        <div className="hidden items-center gap-2 lg:flex">
+        <nav className="items-center gap-1 rounded-full border border-white/80 bg-slate-100/70 p-1 shadow-inner shadow-slate-200/70 dark:border-slate-700 dark:bg-slate-900/80 dark:shadow-none lg:flex">
           {navLinks.map((link) => (
             <NavLink
               key={link.to}
@@ -100,6 +107,7 @@ export function Navbar() {
           )}
         </nav>
         </div>
+        </div>
 
         <div
           className={cn(
@@ -114,6 +122,9 @@ export function Navbar() {
                 isMenuOpen ? 'translate-y-0' : '-translate-y-2',
               )}
             >
+              <div className="mb-1 flex justify-end px-2 py-1">
+                <ThemeToggle />
+              </div>
               {navLinks.map((link) => (
                 <NavLink
                   key={link.to}
