@@ -110,8 +110,11 @@ export const httpApi: ApiClient = {
       console.debug('[BusGo httpApi.trips.search]', Object.fromEntries(searchParams))
       return request(`/routes/search?${searchParams.toString()}`)
     },
-    byId(tripId: string) {
-      return request(`/routes/${encodeURIComponent(tripId)}`)
+    byId(tripId: string, travelDate?: string) {
+      const searchParams = new URLSearchParams()
+      if (travelDate?.trim()) searchParams.set('date', travelDate.trim())
+      const query = searchParams.toString()
+      return request(`/routes/${encodeURIComponent(tripId)}${query ? `?${query}` : ''}`)
     },
   },
   seats: {

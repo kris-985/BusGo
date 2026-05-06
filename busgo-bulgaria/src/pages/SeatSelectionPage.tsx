@@ -1,5 +1,5 @@
 ﻿import { useEffect, useMemo } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 import { routes } from '@/app/router/routes'
 import { SeatStatus } from '@/entities/seat/types'
@@ -17,8 +17,10 @@ import { formatDate, formatMoney, formatTime } from '@/shared/lib/format'
 export function SeatSelectionPage() {
   const navigate = useNavigate()
   const { tripId } = useParams()
+  const [searchParams] = useSearchParams()
   const id = tripId ?? ''
-  const query = useTripByIdQuery(id, Boolean(id))
+  const travelDate = searchParams.get('date')?.trim() || undefined
+  const query = useTripByIdQuery(id, Boolean(id), travelDate)
   const { actions } = useBookingStore()
   const seatActions = useSeatSelectionStore((s) => s.actions)
   const selectedSeatIds = useSelectedSeatIds(id)
@@ -237,6 +239,7 @@ export function SeatSelectionPage() {
                 onClick={() => {
                   if (derived.validSelectedSeatIds.length === 0) return
                   actions.setTripId(trip.id)
+                  actions.setTravelDate(travelDate ?? null)
                   actions.setSelectedSeatIds(derived.validSelectedSeatIds)
                   navigate(routes.checkout())
                 }}

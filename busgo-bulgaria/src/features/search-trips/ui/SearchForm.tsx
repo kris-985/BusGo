@@ -121,7 +121,7 @@ export function SearchForm({ compact }: SearchFormProps) {
         />
       </div>
       <div className="md:col-span-2">
-        <Button className="w-full">Search</Button>
+        <Button className="w-full" type="submit">Search</Button>
       </div>
     </form>
   )

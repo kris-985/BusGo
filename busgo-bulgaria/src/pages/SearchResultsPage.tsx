@@ -139,7 +139,7 @@ export function SearchResultsPage() {
                       className="mt-5 w-full"
                       onClick={() => {
                         actions.setTripId(trip.id)
-                        navigate(routes.seatSelection(trip.id))
+                        navigate(routes.seatSelection(trip.id, params.date))
                       }}
                     >
                       Select seats

@@ -3,7 +3,10 @@ export const routes = {
   about: () => '/about',
   auth: () => '/login',
   searchResults: () => '/search-results',
-  seatSelection: (tripId: string) => `/seat-selection/${tripId}`,
+  seatSelection: (tripId: string, date?: string) => {
+    const path = `/seat-selection/${tripId}`
+    return date ? `${path}?date=${encodeURIComponent(date)}` : path
+  },
   checkout: () => '/checkout',
   success: (bookingId: string) => `/success/${bookingId}`,
   myBookings: () => '/my-bookings',

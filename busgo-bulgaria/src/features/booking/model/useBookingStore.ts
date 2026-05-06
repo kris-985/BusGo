@@ -12,6 +12,7 @@ export type DraftPassenger = {
 
 export type BookingDraft = {
   tripId: string | null
+  travelDate: string | null
   selectedSeatIds: string[]
   passengers: DraftPassenger[]
   contactEmail: string
@@ -23,6 +24,7 @@ type BookingState = {
   draft: BookingDraft
   actions: {
     setTripId(tripId: string | null): void
+    setTravelDate(travelDate: string | null): void
     setSelectedSeatIds(seatIds: string[]): void
     setPassengers(passengers: DraftPassenger[]): void
     setContact(details: { email: string; phone: string }): void
@@ -33,6 +35,7 @@ type BookingState = {
 
 const createInitialDraft = (): BookingDraft => ({
   tripId: null,
+  travelDate: null,
   selectedSeatIds: [],
   passengers: [{ firstName: '', lastName: '', type: 'ADULT' }],
   contactEmail: '',
@@ -47,6 +50,8 @@ export const useBookingStore = create<BookingState>()(
       actions: {
         setTripId: (tripId) =>
           set((s) => ({ ...s, draft: { ...s.draft, tripId } })),
+        setTravelDate: (travelDate) =>
+          set((s) => ({ ...s, draft: { ...s.draft, travelDate } })),
         setSelectedSeatIds: (seatIds) =>
           set((s) => ({ ...s, draft: { ...s.draft, selectedSeatIds: Array.from(new Set(seatIds)) } })),
         setPassengers: (passengers) =>

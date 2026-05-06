@@ -61,7 +61,7 @@ export function CheckoutPage() {
   const [submitError, setSubmitError] = useState<string | null>(null)
 
   const tripId = draft.tripId
-  const tripQuery = useTripByIdQuery(tripId ?? '', Boolean(tripId))
+  const tripQuery = useTripByIdQuery(tripId ?? '', Boolean(tripId), draft.travelDate ?? undefined)
   const seatAvailabilityQuery = useSeatAvailabilityByTripQuery(tripId ?? '', Boolean(tripId))
   const createMutation = useCreateBookingMutation()
 
@@ -184,6 +184,7 @@ export function CheckoutPage() {
 
       const bookingRes = await createMutation.mutateAsync({
         tripId,
+        travelDate: draft.travelDate ?? undefined,
         seatIds: draft.selectedSeatIds,
         passengers: passengers.map((p) => ({
           firstName: p.firstName.trim(),

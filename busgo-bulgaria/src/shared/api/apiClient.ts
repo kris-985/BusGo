@@ -64,6 +64,7 @@ export type AdminRouteRecord = {
 
 export type CreateBookingInput = {
   tripId: string
+  travelDate?: string
   seatIds: string[]
   passengers: Array<{
     firstName: string
@@ -128,7 +129,7 @@ export type ApiClient = {
   }
   trips: {
     search(params: SearchTripsParams): Promise<ApiResult<Trip[]>>
-    byId(tripId: string): Promise<ApiResult<Trip>>
+    byId(tripId: string, travelDate?: string): Promise<ApiResult<Trip>>
   }
   seats: {
     availabilityByTrip(tripId: string): Promise<ApiResult<SeatAvailability>>

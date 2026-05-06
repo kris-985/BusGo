@@ -7,7 +7,7 @@ import { throwApiError } from '@/shared/api/errors'
 export const searchTripsKeys = {
   all: ['trips'] as const,
   search: (params: SearchTripsParams) => [...searchTripsKeys.all, 'search', params] as const,
-  byId: (tripId: string) => [...searchTripsKeys.all, 'byId', tripId] as const,
+  byId: (tripId: string, travelDate?: string) => [...searchTripsKeys.all, 'byId', tripId, travelDate ?? ''] as const,
 }
 
 export const citiesKeys = {
@@ -37,12 +37,12 @@ export function useSearchTripsQuery(params: SearchTripsParams, enabled: boolean)
   })
 }
 
-export function useTripByIdQuery(tripId: string, enabled: boolean) {
+export function useTripByIdQuery(tripId: string, enabled: boolean, travelDate?: string) {
   return useQuery({
-    queryKey: searchTripsKeys.byId(tripId),
+    queryKey: searchTripsKeys.byId(tripId, travelDate),
     enabled,
     queryFn: async () => {
-      const res = await apiClient.trips.byId(tripId)
+      const res = await apiClient.trips.byId(tripId, travelDate)
       if (!res.ok) throwApiError(res.error)
       return res.data
     },

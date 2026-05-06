@@ -140,6 +140,10 @@ function localDatePart(iso) {
   return String(iso ?? '').slice(0, 10)
 }
 
+function isYmd(value) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(String(value ?? ''))
+}
+
 function routeKey(route) {
   return `${route.fromCity}-${route.toCity}`
 }
@@ -170,6 +174,17 @@ function roadDistanceKm(fromCity, toCity) {
 
 function addMinutes(iso, minutes) {
   return new Date(new Date(iso).getTime() + minutes * 60000).toISOString()
+}
+
+function routeOnDate(route, date) {
+  if (!isYmd(date)) return route
+
+  const departureTime = `${date}${String(route.departureTime).slice(10)}`
+  return {
+    ...route,
+    departureTime,
+    arrivalTime: addMinutes(departureTime, minutesBetween(route.departureTime, route.arrivalTime)),
+  }
 }
 
 function demoRouteId(fromCity, toCity, departureTime) {
@@ -588,7 +603,7 @@ app.get('/routes/search', async (req, res, next) => {
     const dateMatches = date
       ? directMatches.filter((route) => localDatePart(route.departureTime) === date)
       : directMatches
-    const matches = dateMatches.length > 0 ? dateMatches : directMatches
+    const matches = dateMatches.length > 0 ? dateMatches : directMatches.map((route) => routeOnDate(route, date))
     console.debug('[BusGo API] /routes/search', {
       from: req.query.from,
       to: req.query.to,
@@ -611,7 +626,7 @@ app.get('/routes/:id', async (req, res, next) => {
       sendError(res, 404, 'Trip not found')
       return
     }
-    res.json(toTrip(route))
+    res.json(toTrip(routeOnDate(route, req.query.date)))
   } catch (error) {
     next(error)
   }
@@ -720,7 +735,7 @@ app.post('/bookings', requireAuth, async (req, res, next) => {
   try {
     await delay()
     const db = await readDb()
-    const { tripId, seatIds, passengers, contactEmail, contactPhone, paymentMethod } = req.body
+    const { tripId, travelDate, seatIds, passengers, contactEmail, contactPhone, paymentMethod } = req.body
     const route = db.routes.find((item) => item.id === tripId)
     if (!route) {
       sendError(res, 404, 'Trip not found')
@@ -751,7 +766,7 @@ app.post('/bookings', requireAuth, async (req, res, next) => {
     route.occupiedSeatIds = Array.from(occupiedSeatIds)
     route.availableSeats = Math.max(0, route.totalSeats - route.occupiedSeatIds.length)
 
-    const trip = toTrip(route)
+    const trip = toTrip(routeOnDate(route, travelDate))
     const normalizedPassengers = uniqueSeatIds.map((_, index) => ({
       id: `p-${Date.now()}-${index}`,
       ...(passengers?.[index] ?? { firstName: '', lastName: '', type: 'ADULT' }),
