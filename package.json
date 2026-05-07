@@ -1,0 +1,12 @@
+{
+  "name": "busgo",
+  "private": true,
+  "workspaces": [
+    "busgo-bulgaria"
+  ],
+  "scripts": {
+    "build": "npm --workspace busgo-bulgaria run build",
+    "dev": "npm --workspace busgo-bulgaria run dev -- --host 0.0.0.0",
+    "server": "npm --workspace busgo-bulgaria run server"
+  }
+}

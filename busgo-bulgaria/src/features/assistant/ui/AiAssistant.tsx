@@ -1,6 +1,7 @@
 import { type FormEvent, type KeyboardEvent, useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 
+import { apiBaseUrl } from '@/shared/api/baseUrl'
 import { cn } from '@/shared/lib/cn'
 
 type AssistantMessage = {
@@ -8,10 +9,6 @@ type AssistantMessage = {
   role: 'assistant' | 'user'
   text: string
 }
-
-const baseUrl = import.meta.env.PROD
-  ? ''
-  : import.meta.env.VITE_API_URL ?? 'http://localhost:3001'
 
 const initialMessages: AssistantMessage[] = [
   {
@@ -64,7 +61,7 @@ export function AiAssistant() {
     setIsSending(true)
 
     try {
-      const response = await fetch(`${baseUrl}/assistant`, {
+      const response = await fetch(`${apiBaseUrl}/assistant`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

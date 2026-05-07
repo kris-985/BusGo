@@ -9,11 +9,9 @@ import type {
   SearchTripsParams,
   SignupInput,
 } from '@/shared/api/apiClient'
+import { apiBaseUrl } from '@/shared/api/baseUrl'
 import type { ApiError, ApiResult } from '@/shared/api/types'
 
-const baseUrl = import.meta.env.PROD
-  ? ''
-  : import.meta.env.VITE_API_URL ?? 'http://localhost:3001'
 const authTokenKey = 'busgo:authToken'
 
 function ok<T>(data: T): ApiResult<T> {
@@ -31,7 +29,7 @@ function errorCodeFromStatus(status?: number): ApiError['code'] {
 async function request<T>(path: string, init?: RequestInit): Promise<ApiResult<T>> {
   try {
     const token = localStorage.getItem(authTokenKey)
-    const response = await fetch(`${baseUrl}${path}`, {
+    const response = await fetch(`${apiBaseUrl}${path}`, {
       headers: {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
