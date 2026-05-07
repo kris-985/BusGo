@@ -20,7 +20,7 @@ export function Navbar() {
     { label: 'Home', to: routes.home() },
     { label: 'Search', to: routes.searchResults() },
     { label: 'About', to: routes.about() },
-    { label: 'My bookings', to: routes.myBookings() },
+    ...(auth.isAuthenticated ? [{ label: 'My bookings', to: routes.myBookings() }] : []),
     ...(auth.user?.role === 'admin' ? [{ label: 'Admin', to: routes.admin() }] : []),
     { label: 'Profile', to: routes.profile() },
   ]
