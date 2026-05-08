@@ -51,6 +51,14 @@ const distanceByRoute = new Map([
 ])
 const apiDelayMs = Number(process.env.API_DELAY_MS ?? 500)
 
+app.use((req, _res, next) => {
+  const netlifyFunctionPrefix = '/.netlify/functions/api'
+  if (req.url.startsWith(netlifyFunctionPrefix)) {
+    req.url = req.url.slice(netlifyFunctionPrefix.length) || '/'
+  }
+  next()
+})
+
 app.use(express.json())
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', process.env.CORS_ORIGIN ?? '*')
@@ -878,7 +886,7 @@ app.use((error, _req, res, _next) => {
   })
 })
 
-if (!process.env.VERCEL) {
+if (!process.env.NETLIFY && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
   app.listen(port, () => {
     console.log(`BusGo API listening on http://localhost:${port}`)
   })
