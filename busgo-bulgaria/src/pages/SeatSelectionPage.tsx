@@ -106,35 +106,35 @@ export function SeatSelectionPage() {
       ) : (
         <div className="grid gap-6 lg:grid-cols-3">
           <Card className="overflow-hidden p-0 lg:col-span-2">
-            <div className="border-b border-slate-100 bg-slate-50/80 p-6">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <div className="text-sm font-semibold text-slate-500">Route</div>
-                <div className="mt-1 text-2xl font-black text-slate-950">
-                  {trip.from.name} to {trip.to.name}
+            <div className="border-b border-slate-100 bg-slate-50/80 p-6 dark:border-slate-800 dark:bg-slate-900/55">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="text-sm font-semibold text-slate-500">Route</div>
+                  <div className="mt-1 text-2xl font-black text-slate-950">
+                    {trip.from.name} to {trip.to.name}
+                  </div>
+                  <div className="mt-2 text-sm text-slate-700">
+                    {formatDate(trip.departureTime)} - {formatTime(trip.departureTime)} to {formatTime(trip.arrivalTime)}
+                  </div>
+                  <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-500/10 px-3 py-1 text-xs font-bold text-cyan-800">
+                    <span className="h-2 w-2 rounded-full bg-cyan-500" />
+                    {availabilityQuery.isFetching ? 'Syncing seats...' : 'Live seat updates'}
+                  </div>
                 </div>
-                <div className="mt-2 text-sm text-slate-700">
-                  {formatDate(trip.departureTime)} - {formatTime(trip.departureTime)} to {formatTime(trip.arrivalTime)}
-                </div>
-                <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-500/10 px-3 py-1 text-xs font-bold text-cyan-800">
-                  <span className="h-2 w-2 rounded-full bg-cyan-500" />
-                  {availabilityQuery.isFetching ? 'Syncing seats...' : 'Live seat updates'}
-                </div>
-              </div>
 
-              <div className="flex flex-wrap gap-3 text-sm">
-                <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                  <div className="text-xs text-slate-600">Selected</div>
-                  <div className="mt-0.5 text-xl font-black text-slate-950">{derived.validSelectedSeatIds.length}</div>
-                </div>
-                <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                  <div className="text-xs text-slate-600">Remaining</div>
-                  <div className="mt-0.5 text-xl font-black text-slate-950">
-                    {availabilityQuery.isLoading ? '-' : derived.remainingFreeAfterSelection}
+                <div className="flex flex-wrap gap-3 text-sm">
+                  <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-700/70 dark:!bg-slate-950/45">
+                    <div className="text-xs text-slate-600">Selected</div>
+                    <div className="mt-0.5 text-xl font-black text-slate-950">{derived.validSelectedSeatIds.length}</div>
+                  </div>
+                  <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-700/70 dark:!bg-slate-950/45">
+                    <div className="text-xs text-slate-600">Remaining</div>
+                    <div className="mt-0.5 text-xl font-black text-slate-950">
+                      {availabilityQuery.isLoading ? '-' : derived.remainingFreeAfterSelection}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
             </div>
 
             <div className="px-6 pt-5 flex flex-wrap gap-3 text-xs text-slate-700">
@@ -160,7 +160,7 @@ export function SeatSelectionPage() {
               ) : null}
 
               {availabilityQuery.isLoading ? (
-                <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-6">
+                <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-6 dark:border-slate-700/70 dark:!bg-slate-950/45">
                   <Spinner />
                   <div className="text-sm text-slate-700">Loading seats...</div>
                 </div>

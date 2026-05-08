@@ -131,10 +131,11 @@ export function HomePage() {
                 ))}
               </Select>
             </div>
-            <div className="md:col-span-2">
+            <div className="min-w-0 md:col-span-2">
               <Input
                 label="Date"
                 type="date"
+                className="min-w-0 max-w-full px-3 text-sm"
                 value={values.date}
                 onChange={(e) => setValues((v) => ({ ...v, date: e.target.value }))}
               />
