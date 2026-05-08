@@ -21,11 +21,6 @@
   status = 200
 
 [[redirects]]
-  from = "/assistant"
-  to = "/.netlify/functions/api/assistant"
-  status = 200
-
-[[redirects]]
   from = "/cities"
   to = "/.netlify/functions/api/cities"
   status = 200

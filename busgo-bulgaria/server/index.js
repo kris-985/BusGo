@@ -352,33 +352,6 @@ function publicUser(user) {
     : null
 }
 
-function fallbackAssistantReply(message) {
-  const text = normalize(message)
-  if (text.includes('ticket') || text.includes('bilet') || text.includes('билет') || text.includes('купи')) {
-    return 'Да. Най-бързият път е: отвори Search, избери откъде и докъде пътуваш, избери маршрут, после свободни места и продължи към checkout. Ако ми кажеш градовете и дата, ще те насоча по-конкретно.'
-  }
-  if (text.includes('login') || text.includes('register') || text.includes('регист') || text.includes('вход')) {
-    return 'За покупка ти трябва профил. Отвори Login, избери Sign up за нов акаунт или Login, ако вече имаш регистрация. След вход можеш да довършиш резервацията.'
-  }
-  if (text.includes('admin')) {
-    return 'Admin панелът е само за потребители с role admin. Там можеш да следиш маршрути, потребители, резервации и приходи.'
-  }
-  if (text.includes('seat') || text.includes('място') || text.includes('места')) {
-    return 'След избран маршрут отвори картата на местата. Зелените са свободни, червените са заети. Можеш да избереш едно или няколко свободни места преди checkout.'
-  }
-  if (text.includes('маршрут') || text.includes('route') || text.includes('пътувам') || text.includes('до ')) {
-    return 'Мога да помогна с маршрут, но ми трябват поне град на тръгване и град на пристигане. Например: "София до Варна утре" или "Пловдив до Бургас".'
-  }
-  return 'Кажи ми какво искаш да направиш: да намериш маршрут, да купиш билет, да избереш места или да провериш профил/резервация. Ако дадеш градове и дата, ще бъда по-точен.'
-}
-
-async function assistantReply({ message }) {
-  return {
-    reply: fallbackAssistantReply(message),
-    mode: 'local',
-  }
-}
-
 function signUserToken(user) {
   return jwt.sign({ sub: user.id, role: user.role }, jwtSecret, { expiresIn: '7d' })
 }
@@ -572,24 +545,6 @@ app.post('/auth/login', async (req, res, next) => {
 
 app.get('/auth/me', requireAuth, (req, res) => {
   res.json(publicUser(req.user))
-})
-
-app.post('/assistant', async (req, res, next) => {
-  try {
-    await delay(150)
-    const message = String(req.body.message ?? '').trim()
-    const currentPath = String(req.body.currentPath ?? '/')
-
-    if (!message) {
-      sendError(res, 422, 'Message is required')
-      return
-    }
-
-    const result = await assistantReply({ message, currentPath })
-    res.json(result)
-  } catch (error) {
-    next(error)
-  }
 })
 
 app.get('/cities', async (_req, res, next) => {
