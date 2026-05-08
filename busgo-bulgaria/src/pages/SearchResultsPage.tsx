@@ -131,7 +131,7 @@ export function SearchResultsPage() {
                     </div>
                   </div>
 
-                  <div className="border-t border-slate-100 bg-slate-50/90 p-5 lg:border-l lg:border-t-0">
+                  <div className="border-t border-slate-100 p-5 lg:border-l lg:border-t-0">
                     <div className="text-sm text-slate-500">Total from</div>
                     <div className="mt-1 text-3xl font-black text-slate-950">{formatMoney(trip.price)}</div>
                     <div className="mt-2 text-sm text-slate-600">per passenger, taxes included</div>
