@@ -44,12 +44,12 @@ export function AppLayout() {
     <div className="min-h-dvh bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.16),transparent_32%),linear-gradient(180deg,#f8fafc_0%,#eef2f6_42%,#e8edf3_100%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.12),transparent_30%),linear-gradient(180deg,#020617_0%,#0f172a_50%,#111827_100%)]">
       <Navbar />
 
-      <main className="mx-auto max-w-7xl py-6 container-px sm:py-8 lg:py-10">
+      <main className="mx-auto max-w-7xl pb-24 pt-6 container-px sm:py-8 lg:py-10">
         <Outlet />
       </main>
 
       <footer className="border-t border-white/70 bg-white/75 backdrop-blur dark:border-slate-800/80 dark:bg-slate-950/80">
-        <div className="mx-auto max-w-7xl py-10 container-px">
+        <div className="mx-auto max-w-7xl pb-28 pt-10 container-px sm:py-10">
           <div className="grid gap-8 lg:grid-cols-[1.15fr_2fr]">
             <div>
               <Link to={routes.home()} className="inline-flex items-center gap-3">
