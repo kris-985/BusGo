@@ -112,10 +112,10 @@ export function AiAssistant() {
   const showQuickPrompts = messages.length === 1 && !isSending
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6">
+    <div className="pointer-events-none fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6">
       <div
         className={cn(
-          'mb-3 w-[calc(100vw-2rem)] max-w-md overflow-hidden rounded-2xl border border-white/80 bg-white shadow-[0_22px_70px_rgba(15,23,42,0.22)] transition-all duration-300',
+          'pointer-events-auto mb-3 w-[calc(100vw-2rem)] max-w-md overflow-hidden rounded-2xl border border-white/80 bg-white shadow-[0_22px_70px_rgba(15,23,42,0.22)] transition-all duration-300',
           isOpen ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0',
         )}
       >
@@ -198,7 +198,7 @@ export function AiAssistant() {
 
       <button
         type="button"
-        className="ml-auto flex h-14 items-center gap-3 rounded-2xl bg-slate-950 px-4 font-black text-white shadow-[0_18px_45px_rgba(15,23,42,0.25)] transition-transform hover:-translate-y-0.5"
+        className="pointer-events-auto ml-auto flex h-14 items-center gap-3 rounded-2xl bg-slate-950 px-4 font-black text-white shadow-[0_18px_45px_rgba(15,23,42,0.25)] transition-transform hover:-translate-y-0.5"
         onClick={() => setIsOpen((current) => !current)}
         aria-label="Open AI Assistant"
       >
