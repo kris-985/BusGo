@@ -1,14 +1,15 @@
 import express from 'express'
 import { readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import bcrypt from 'bcryptjs'
 import 'dotenv/config'
 import jwt from 'jsonwebtoken'
 import { MongoClient } from 'mongodb'
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const dbPath = path.join(__dirname, 'db.json')
+const isWorkspaceCwd = path.basename(process.cwd()) === 'busgo-bulgaria'
+const serverDir = path.join(process.cwd(), isWorkspaceCwd ? 'server' : 'busgo-bulgaria/server')
+const dbPath = path.join(serverDir, 'db.json')
+const isServerlessRuntime = Boolean(process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME)
 const app = express()
 const port = Number(process.env.PORT ?? 3001)
 const currency = 'BGN'
@@ -886,7 +887,7 @@ app.use((error, _req, res, _next) => {
   })
 })
 
-if (!process.env.NETLIFY && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
+if (!isServerlessRuntime) {
   app.listen(port, () => {
     console.log(`BusGo API listening on http://localhost:${port}`)
   })
