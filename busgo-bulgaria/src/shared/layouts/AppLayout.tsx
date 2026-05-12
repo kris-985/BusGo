@@ -1,6 +1,7 @@
 import { Link, Outlet } from 'react-router-dom'
 
 import { routes } from '@/app/router/routes'
+import { useAuth } from '@/features/auth/model/authContext'
 import { Navbar } from '@/shared/components/navigation/Navbar'
 import { todayYmd } from '@/shared/lib/format'
 
@@ -14,13 +15,11 @@ const popularRoutes = [
   ['Stara Zagora', 'Sofia'],
 ] as const
 
-const helpLinks = [
+const publicHelpLinks = [
   { label: 'Home', to: routes.home() },
   { label: 'Search trips', to: routes.searchResults() },
   { label: 'About', to: routes.about() },
-  { label: 'My bookings', to: routes.myBookings() },
   { label: 'Account profile', to: routes.profile() },
-  { label: 'Route admin', to: routes.admin() },
 ]
 
 function searchLink(from: string, to: string) {
@@ -39,6 +38,12 @@ function citySearchLink(city: string) {
 }
 
 export function AppLayout() {
+  const auth = useAuth()
+  const helpLinks = [
+    ...publicHelpLinks,
+    ...(auth.isAuthenticated ? [{ label: 'My bookings', to: routes.myBookings() }] : []),
+  ]
+
   return (
     <div className="min-h-dvh bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.16),transparent_32%),linear-gradient(180deg,#f8fafc_0%,#eef2f6_42%,#e8edf3_100%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.12),transparent_30%),linear-gradient(180deg,#020617_0%,#0f172a_50%,#111827_100%)]">
       <Navbar />
